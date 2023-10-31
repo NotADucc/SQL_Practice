@@ -38,7 +38,7 @@ Optional
 
 | <img src="https://i.imgur.com/8HmLtlF.gif">   | 
 | :--- | 
-| I got these create/insert scripts from school but they are shit performance wise. (u press execute and takes 2 mins to insert 300+- rows) <br /> To combat this I've transformed it so it makes use of bulk inserts, yes I know that bulk inserts ignore constraints but you dont really need them at initialization with proper data. |
+| I got these create/insert scripts from school but they are shit performance wise. (u press execute and takes 2 mins to insert 300k+- rows) <br /> To combat this I've transformed it so it makes use of bulk inserts, yes I know that bulk inserts ignore constraints but you dont really need them at initialization with proper data. |
 
        
 6. Press F5 or press the execute button.
