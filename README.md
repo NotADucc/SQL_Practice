@@ -34,7 +34,7 @@ Optional
 2. Choose a database you want to work in.
 3. Navigate to _scipts
 4. Double click on the sql file Create_{db_name}.sql or drag it in SSMS.
-5. if the directory contains a .csv file you need to set the variable @InitialPath in the sql script file.
+5. if the folder contains a .csv file you need to set the variable @InitialPath with the folder directory path.
 
 | <img src="https://i.imgur.com/8HmLtlF.gif">   | 
 | :--- | 
