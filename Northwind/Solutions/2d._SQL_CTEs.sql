@@ -87,25 +87,34 @@ ORDER BY c.CompanyName
 -- 4. Give all employees except for the eldest
 --> birthdate of the eldest in subquery or cte
 
---employeeid	employeeName	birthdate
---1	Nancy Davolio	1978-12-08 00:00:00.000
---2	Andrew Fuller	1982-02-19 00:00:00.000
---3	Janet Leverling	1993-08-30 00:00:00.000
---4	Margaret Peacock	1967-09-19 00:00:00.000
---5	Steven Buchanan	1975-03-04 00:00:00.000
---6	Michael Suyama	1983-07-02 00:00:00.000
---7	Robert King	1980-05-29 00:00:00.000
---8	Laura Callahan	1978-01-09 00:00:00.000
---9	Anne Dodsworth	1986-01-27 00:00:00.000
-
 -- Solution 1 (using Subqueries)
-
+SELECT EmployeeID, CONCAT(FirstName, ' ', LastName) AS EmployeeName, BirthDate
+FROM Employees
+WHERE BirthDate NOT IN(SELECT * FROM (SELECT MIN(BirthDate) AS OldestBDay FROM Employees) sq)
 
 -- Solution 2 (using CTE's)
-
-
+WITH EldestEmployee AS(
+	SELECT MIN(BirthDate) AS OldestBDay
+	FROM Employees
+)
+SELECT EmployeeID, CONCAT(FirstName, ' ', LastName) AS EmployeeName, BirthDate
+FROM Employees
+WHERE BirthDate NOT IN(SELECT * FROM EldestEmployee)
 
 -- 5.  What is the total number of customers and suppliers?
+WITH 
+CustomerCTE AS(
+	SELECT COUNT(*) AS CustomerCount
+	FROM Customers
+),
+SupplierCTE AS(
+	SELECT COUNT(*) AS SupplierCount
+	FROM Suppliers
+)
+SELECT
+(SELECT * FROM CustomerCTE) AS CustomerCount,
+(SELECT * FROM SupplierCTE) AS SupplierCount
+
 
 
 
