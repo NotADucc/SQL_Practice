@@ -20,7 +20,7 @@ OVER clause
 */
 
 -- Example
--- Make an overview of the UnitsInStock per Category and per Product
+-- Make an overview of the UnitsInStock per Category and per Product
 SELECT CategoryID, ProductID, UnitsInStock
 FROM Products
 order by CategoryID, ProductID
@@ -89,7 +89,7 @@ The previous query works with the default window: start of resultset to current 
 
 -- the previous query is the shorter version of the following query. Exactly the same resultset!
 SELECT CategoryID, ProductID, UnitsInStock,
-SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY ProductID RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) TotalUnitsInStockPerCategory
+SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY ProductID RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) TotalUnitsInStockPerCategory
 FROM Products
 
 
@@ -105,19 +105,19 @@ PARTITION is optional, ORDER BY is mandatory
 
 -- RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
 SELECT CategoryID, ProductID, UnitsInStock,
-SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY  ProductID RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) TotalUnitsInStockPerCategory
+SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY  ProductID RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) TotalUnitsInStockPerCategory
 FROM Products
 
 
 -- RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING 
 SELECT CategoryID, ProductID, UnitsInStock,
-SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY ProductID RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) TotalUnitsInStockPerCategory
+SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY ProductID RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) TotalUnitsInStockPerCategory
 FROM Products
 
 
 -- RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
 SELECT CategoryID, ProductID, UnitsInStock,
-SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY ProductID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) TotalUnitsInStockPerCategory
+SUM(UnitsInStock) OVER (PARTITION BY CategoryID ORDER BY ProductID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) TotalUnitsInStockPerCategory
 FROM Products
 
 
