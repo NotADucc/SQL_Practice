@@ -140,22 +140,48 @@ JOIN EldestPerTitle ept ON e.BirthDate = ept.Eldest AND e.Title = ept.Title
 
 
 -- 7. Give per title the employee that earns most
---employeeid	fullName	title	max_salary
---2	Andrew Fuller	Vice President, Sales	90000.00
---1	Nancy Davolio	Sales Representative	48000.00
---5	Steven Buchanan	Sales Manager	55000.00
---8	Laura Callahan	Inside Sales Coordinator	51000.00
 
+--Can be easier with window functions but we're not there yet.
+WITH SalaryPerTitle AS (
+	SELECT Title, Salary
+	FROM Employees
+	GROUP BY Title, Salary
+),
+HighestSalaryPerTitle AS(
+	SELECT Title, MAX(Salary) AS HighestEarner
+	FROM SalaryPerTitle
+	GROUP BY Title
+)
+SELECT e.EmployeeID, CONCAT(e.FirstName, ' ', e.LastName) AS FullName, e.Title, e.Salary
+FROM Employees e
+JOIN HighestSalaryPerTitle ept ON e.Salary = ept.HighestEarner AND e.Title = ept.Title
+ORDER BY e.Salary DESC
 
 
 
 -- 8. Give the titles for which the eldest employee is also the employee who earns most
---employeeid	title	min_birthdate	max_salary
---2	Vice President, Sales	1982-02-19 00:00:00.000	90000.00
---5	Sales Manager	1975-03-04 00:00:00.000	55000.00
---8	Inside Sales Coordinator	1978-01-09 00:00:00.000	51000.00
 
-
+--Can be easier with window functions but we're not there yet.
+WITH CompoundPerTitle AS (
+	SELECT Title, BirthDate, Salary
+	FROM Employees
+	GROUP BY Title, BirthDate, Salary
+),
+HighestSalaryPerTitle AS(
+	SELECT Title, MAX(Salary) AS HighestEarner
+	FROM CompoundPerTitle
+	GROUP BY Title
+),
+EldestPerTitle AS(
+	SELECT Title, MIN(BirthDate) AS Eldest
+	FROM CompoundPerTitle
+	GROUP BY Title
+)
+SELECT e.EmployeeID, e.Title, e.BirthDate, e.Salary
+FROM CompoundPerTitle com
+JOIN EldestPerTitle ept ON com.Title = ept.Title AND com.BirthDate = ept.Eldest
+JOIN HighestSalaryPerTitle hspt ON com.Title = hspt.Title AND com.Salary = hspt.HighestEarner
+JOIN Employees e ON e.Title = com.Title AND e.Salary = com.Salary AND e.BirthDate = com.BirthDate
 
 
 -- 9. Execute the following script:
