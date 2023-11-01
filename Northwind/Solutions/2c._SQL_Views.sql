@@ -1,5 +1,3 @@
-/*** VIEWS ***/
-
 /*
 Definition
 - A view is a saved SELECT statement
@@ -15,51 +13,6 @@ Advantages
 - Organise data for export to other applications
 */
 
--- Creating a view
-CREATE VIEW V_ProductsCustomer(productcode, company, quantity)
-AS SELECT od.ProductID, c.CompanyName, sum(od.Quantity)
-FROM Customers c
-JOIN Orders o ON o.CustomerID = c.CustomerID
-JOIN OrderDetails od ON o.OrderID = od.OrderID
-GROUP BY od.ProductID, c.CompanyName;
-
--- Use of a view
-SELECT * FROM V_ProductsCustomer;
-
--- Changing a view
-ALTER VIEW V_ProductsCustomer(productcode, company)
-AS SELECT od.ProductID, c.CompanyName
-FROM Customers c
-JOIN Orders o ON o.CustomerID = c.CustomerID
-JOIN OrderDetails od ON o.OrderID = od.OrderID
-GROUP BY od.ProductID, c.CompanyName;
-
--- Dropping a view
-DROP VIEW V_ProductsCustomer;
-
-/* views as partial solution for complex problems */
-
--- Create a view with the number of orders per employee per year
-CREATE OR ALTER VIEW vw_number_of_orders_per_employee_per_year
-AS 
-SELECT EmployeeID, YEAR(OrderDate) As OrderYear, COUNT(OrderID) As NumberOfOrders
-FROM Orders
-GROUP BY EmployeeID, YEAR(OrderDate)
-
--- Check the result
-SELECT * FROM vw_number_of_orders_per_employee_per_year
-
--- Add the running total. Use the view.
-SELECT EmployeeID, OrderYear, NumberOfOrders,
-(SELECT SUM(NumberOfOrders) 
-FROM vw_number_of_orders_per_employee_per_year
-WHERE OrderYear <= vw.OrderYear AND EmployeeID = vw.EmployeeID
-) As TotalNumberOfOrders
-FROM vw_number_of_orders_per_employee_per_year vw
-ORDER BY EmployeeID, OrderYear
-
-
-
 /* Exercises */
 
 -- Exercise 1
@@ -67,28 +20,81 @@ ORDER BY EmployeeID, OrderYear
 -- If the stock is below 15, they'd like to order more to fulfill the need.
 
 -- (1.1) Create a QUERY that shows the ProductId, ProductName and the name of the supplier, do not forget the WHERE clause.
-
+SELECT p.ProductID, p.ProductName, s.CompanyName
+FROM Products p
+JOIN Suppliers s ON p.SupplierID = s.SupplierID
+WHERE p.UnitsInStock < 15 AND Discontinued = 0
 
 -- (1.2) Turn this SELECT statement into a VIEW called: vw_products_to_order.
-
+CREATE VIEW vw_products_to_order(ProductId, ProductName, SupplierName) AS
+SELECT p.ProductID, p.ProductName, s.CompanyName
+FROM Products p
+JOIN Suppliers s ON p.SupplierID = s.SupplierID
+WHERE p.UnitsInStock < 15 AND Discontinued = 0
 
 -- (1.3) Query the VIEW to see the results.
+SELECT * 
+FROM vw_products_to_order
+
+-- (1.4) We've noticed an changes in consumer behavior and would like to change the 15 threshold to 20
+ALTER VIEW vw_products_to_order(ProductId, ProductName, SupplierName) AS
+SELECT p.ProductID, p.ProductName, s.CompanyName
+FROM Products p
+JOIN Suppliers s ON p.SupplierID = s.SupplierID
+WHERE p.UnitsInStock < 20 AND Discontinued = 0
 
 
 -- Exercise 2
 -- The company has to increase prices of certain products. 
 -- To make it seem the prices are not increasing dramatically they're planning to spread the price increase over multiple years. 
--- In total they'd like a 10% price for certain products. The list of impacted products can grow over the coming years. 
+-- In total they'd like a 10% increase for certain products. The list of impacted products can grow over the coming years. 
 -- We'd like to keep all the logic of selecting the correct products in 1 SQL View, in programming terms 'keeping it DRY'. 
 -- The updating of the items is not part of the view itself.
 -- The products in scope are all the products with the term 'Bröd' or 'Biscuit'.
 
 -- (2.1) Create a simple SQL Query to get the correct resultset
+SELECT 
+p.ProductID, 
+p.ProductName,
+p.UnitPrice AS CurrentPrice,
+UpdatedPrice = CASE WHEN p.ProductName LIKE '%Bröd%' OR p.ProductName LIKE '%Biscuit%' THEN p.UnitPrice * 1.1 ELSE p.UnitPrice END
+FROM Products p
+WHERE p.Discontinued = 0
 
+--OR
+
+SELECT 
+p.ProductID, 
+p.ProductName,
+p.UnitPrice AS CurrentPrice,
+UpdatedPrice = p.UnitPrice * 1.1
+FROM Products p
+WHERE (p.ProductName LIKE '%Bröd%' OR p.ProductName LIKE '%Biscuit%') AND p.Discontinued = 0
 
 -- (2.2) Turn this SELECT statement into a VIEW called: vw_price_increasing_products.
+CREATE VIEW vw_price_increasing_products AS
+SELECT 
+p.ProductID, 
+p.ProductName,
+p.UnitPrice AS CurrentPrice,
+UpdatedPrice = CASE WHEN p.ProductName LIKE '%Bröd%' OR p.ProductName LIKE '%Biscuit%' THEN p.UnitPrice * 1.1 ELSE p.UnitPrice END
+FROM Products p
+WHERE p.Discontinued = 0
 
+--OR
+
+CREATE VIEW vw_price_increasing_products AS
+SELECT 
+p.ProductID, 
+p.ProductName,
+p.UnitPrice AS CurrentPrice,
+UpdatedPrice = p.UnitPrice * 1.1
+FROM Products p
+WHERE (p.ProductName LIKE '%Bröd%' OR p.ProductName LIKE '%Biscuit%') AND p.Discontinued = 0
 
 -- (2.3) Query the VIEW to see the results.
+SELECT *
+FROM vw_price_increasing_products
 
-
+-- (2.4) There was enormous backlash at the price increase, the view is not needed anymore.
+DROP VIEW vw_price_increasing_products
