@@ -216,3 +216,19 @@ O8		O11		O2 <-O6 <-O8 <-O11
 
 */
 
+WITH 
+NewParts AS(
+	SELECT 
+	Super, 
+	Sub, 
+	CONVERT(varchar(MAX), Super + ' <-' + Sub) AS Pad
+	FROM Parts p
+	WHERE Super = 'O2'
+	UNION ALL
+	SELECT p.Super, p.Sub, CONVERT(varchar(MAX), np.Pad + ' <-' + p.Sub)
+	FROM Parts p
+	JOIN NewParts np ON p.Super = np.Sub
+)
+SELECT *
+FROM NewParts
+
