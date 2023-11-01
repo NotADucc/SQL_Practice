@@ -3,22 +3,9 @@
 -- Exercise 1
 -- Create the following overview in which each customer gets a sequential number. 
 -- The number is reset when the country changes
-/*
-country		rownum	CompanyName
-Argentina	1		Cactus Comidas para llevar
-Argentina	2		Océano Atlántico Ltda.
-Argentina	3		Rancho grande
-Austria		1		Ernst Handel
-Austria		2		Piccolo und mehr
-Belgium		1		Maison Dewey
-Belgium		2		Suprêmes délices
-Brazil		1		Comércio Mineiro
-Brazil		2		Familia Arquibaldo
-Brazil		3		Gourmet Lanchonetes
-Brazil		4		Hanari Carnes
-...
-*/
-
+SELECT Country, ROW_NUMBER() OVER (PARTITION BY Country ORDER BY Country) rownum, CompanyName
+FROM Customers
+ORDER BY Country
 
 
 -- Exercise 2
