@@ -121,11 +121,20 @@ SELECT
 
 -- 6. Give per title the eldest employee
 
---employeeid	title	min_birthdate
---8	Inside Sales Coordinator	1978-01-09 00:00:00.000
---5	Sales Manager	1975-03-04 00:00:00.000
---4	Sales Representative	1967-09-19 00:00:00.000
---2	Vice President, Sales	1982-02-19 00:00:00.000
+--Can be easier with window functions but we're not there yet.
+WITH BdayPerTitle AS (
+	SELECT Title, BirthDate
+	FROM Employees
+	GROUP BY Title, BirthDate
+),
+EldestPerTitle AS(
+	SELECT Title, MIN(BirthDate) AS Eldest
+	FROM BdayPerTitle
+	GROUP BY Title
+)
+SELECT e.EmployeeID, e.Title, e.BirthDate
+FROM Employees e
+JOIN EldestPerTitle ept ON e.BirthDate = ept.Eldest AND e.Title = ept.Title
 
 
 
