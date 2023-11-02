@@ -3,6 +3,21 @@
 -- Exercise 1
 -- Create the following overview in which each customer gets a sequential number. 
 -- The number is reset when the country changes
+/*
+country		rownum	CompanyName
+Argentina	1		Cactus Comidas para llevar
+Argentina	2		Océano Atlántico Ltda.
+Argentina	3		Rancho grande
+Austria		1		Ernst Handel
+Austria		2		Piccolo und mehr
+Belgium		1		Maison Dewey
+Belgium		2		Suprêmes délices
+Brazil		1		Comércio Mineiro
+Brazil		2		Familia Arquibaldo
+Brazil		3		Gourmet Lanchonetes
+Brazil		4		Hanari Carnes
+...
+*/
 SELECT Country, ROW_NUMBER() OVER (PARTITION BY Country ORDER BY Country) rownum, CompanyName
 FROM Customers
 ORDER BY Country
@@ -23,7 +38,11 @@ ORDER BY Country
 3	2018	108	
 ...
 */
-
+SELECT od.ProductID, YEAR(o.OrderDate) AS YearSold, SUM(od.Quantity) AS TotalQuantity
+FROM OrderDetails od
+JOIN Orders o ON od.OrderID = o.OrderID
+GROUP BY od.ProductID, YEAR(o.OrderDate)
+ORDER BY ProductID
 
 
 -- Step 2: Turn the previous query into a CTE. 
@@ -40,7 +59,19 @@ ORDER BY Country
 3	2018	108	190
 ...
 */
-
+WITH YearDetailsCTE AS(
+	SELECT od.ProductID, YEAR(o.OrderDate) AS YearSold, SUM(od.Quantity) AS TotalQuantity
+	FROM OrderDetails od
+	JOIN Orders o ON od.OrderID = o.OrderID
+	GROUP BY od.ProductID, YEAR(o.OrderDate)
+),
+YearDetailsWithComparisionCTE AS(
+	SELECT x.ProductID, x.YearSold, x.TotalQuantity, LAG(x.TotalQuantity) OVER (ORDER BY x.ProductID, x.YearSold) AS TotalQuantityPrev
+	FROM YearDetailsCTE x
+)
+SELECT *
+FROM YearDetailsWithComparisionCTE
+ORDER BY ProductID
 
 
 -- Step 3: Use a CTE and the previous SQL Query to calculate the year over year performance for each productid. 
