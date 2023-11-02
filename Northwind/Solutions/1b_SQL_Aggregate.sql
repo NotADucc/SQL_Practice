@@ -19,7 +19,7 @@ FROM Employees
 WHERE YEAR(GETDATE()) + 20 - YEAR(BirthDate) >= 65
 
 -- 5. Show a list of different countries where 2 of more suppliers are from. Order alphabeticaly. 
-SELECT Country, COUNT(*)
+SELECT Country, COUNT(*) AS 'Number of suppliers'
 FROM Suppliers
 GROUP BY Country
 HAVING COUNT(*) >= 2
@@ -28,7 +28,7 @@ ORDER BY Country
 
 -- 6. Which suppliers offer at least 5 products with a price less than 100 dollar? Show supplierId and the number of different products. 
 -- The supplier with the highest number of products comes first. 
-SELECT SupplierID, COUNT(*)
+SELECT SupplierID, COUNT(*) AS 'Number of products less than 100'
 FROM Products
 WHERE UnitPrice < 100
 GROUP BY SupplierID

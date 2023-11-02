@@ -17,7 +17,7 @@ WHERE s.SupplierID NOT IN(
 )
 
 -- 3. Give a list of all customers from the same country as the customer Maison Dewey
-SELECT *
+SELECT c.CompanyName, c.Country
 FROM Customers c
 WHERE c.Country = (
 	SELECT cc.Country 
@@ -100,7 +100,6 @@ WHERE c.CompanyName IN(
 
 
 -- 9. Give all the orders for which the ShipAddress is different from the CustomerAddress
--- 48 records
 SELECT o.*
 FROM Orders o
 WHERE o.ShipAddress NOT IN (

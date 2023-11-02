@@ -22,7 +22,7 @@ ORDER BY s.CompanyName
 
 
 -- 3. What’s for each category the lowest UnitPrice? Show category name and unit price. 
-SELECT c.CategoryName, MIN(p.UnitPrice) AS 'Minimum Price'
+SELECT c.CategoryName, MIN(p.UnitPrice) AS 'Minimum UnitPrice'
 FROM Categories c
 JOIN Products p ON c.CategoryID = p.CategoryID
 GROUP BY c.CategoryName
