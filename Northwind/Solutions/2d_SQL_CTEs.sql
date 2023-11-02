@@ -12,7 +12,7 @@ WITH HireYear AS (
 SELECT *
 FROM Employees e
 JOIN HireYear hy ON hy.Year = YEAR(e.HireDate)
-
+GO
 
 
 -- 2 Make a histogram of the number of orders per customer, so show how many times each number occurs. 
@@ -29,12 +29,9 @@ OrdersPerCustomer AS (
 SELECT OrderCount AS NumberOfOrders, COUNT(OrderCount) as NumberOfCustomers
 FROM OrdersPerCustomer
 GROUP BY OrderCount
-
---To get rid of warnings/'erros'
-GO;
+GO
 
 --OR
-
 
 WITH 
 OrdersPerCustomer AS (
@@ -63,7 +60,7 @@ SELECT rmc.NumberOfOrders, ISNULL(copc.NumberOfCustomers, 0) as NumberOfCustomer
 FROM RecursiveMaxCount rmc
 LEFT JOIN CountOrdersPerCustomer copc ON rmc.NumberOfOrders = copc.NumberOfOrders
 OPTION(maxrecursion 0)
-
+GO
 
 
 -- 3. Give the customers of the Country in which most customers live
@@ -82,7 +79,25 @@ SELECT c.CustomerID, c.CompanyName, c.Country
 FROM Customers c
 JOIN (SELECT Country FROM CustomersPerCountry WHERE NrOfCustomers IN(SELECT * FROM MostCostumersCountry)) sq ON c.Country = sq.Country
 ORDER BY c.CompanyName
+GO
 
+--OR
+
+WITH CustomersPerCountry AS(
+	SELECT Country, COUNT(Country) AS NrOfCustomers
+	FROM Customers
+	GROUP BY Country
+),
+MostCostumersCountry AS(
+	SELECT MAX(NrOfCustomers) AS MaxNumber
+	FROM CustomersPerCountry
+)
+SELECT c.CustomerID, c.CompanyName, c.Country
+FROM Customers c
+JOIN CustomersPerCountry cpc ON c.Country = cpc.Country
+JOIN MostCostumersCountry mcc ON cpc.NrOfCustomers = mcc.MaxNumber
+ORDER BY c.CompanyName
+GO
 
 -- 4. Give all employees except for the eldest
 --> birthdate of the eldest in subquery or cte
@@ -91,6 +106,7 @@ ORDER BY c.CompanyName
 SELECT EmployeeID, CONCAT(FirstName, ' ', LastName) AS EmployeeName, BirthDate
 FROM Employees
 WHERE BirthDate NOT IN(SELECT * FROM (SELECT MIN(BirthDate) AS OldestBDay FROM Employees) sq)
+GO
 
 -- Solution 2 (using CTE's)
 WITH EldestEmployee AS(
@@ -100,6 +116,8 @@ WITH EldestEmployee AS(
 SELECT EmployeeID, CONCAT(FirstName, ' ', LastName) AS EmployeeName, BirthDate
 FROM Employees
 WHERE BirthDate NOT IN(SELECT * FROM EldestEmployee)
+GO
+
 
 -- 5.  What is the total number of customers and suppliers?
 WITH 
@@ -114,7 +132,7 @@ SupplierCTE AS(
 SELECT
 (SELECT * FROM CustomerCTE) AS CustomerCount,
 (SELECT * FROM SupplierCTE) AS SupplierCount
-
+GO
 
 
 
@@ -135,7 +153,7 @@ EldestPerTitle AS(
 SELECT e.EmployeeID, e.Title, e.BirthDate
 FROM Employees e
 JOIN EldestPerTitle ept ON e.BirthDate = ept.Eldest AND e.Title = ept.Title
-
+GO
 
 
 
@@ -156,7 +174,7 @@ SELECT e.EmployeeID, CONCAT(e.FirstName, ' ', e.LastName) AS FullName, e.Title, 
 FROM Employees e
 JOIN HighestSalaryPerTitle ept ON e.Salary = ept.HighestEarner AND e.Title = ept.Title
 ORDER BY e.Salary DESC
-
+GO
 
 
 -- 8. Give the titles for which the eldest employee is also the employee who earns most
@@ -182,7 +200,7 @@ FROM CompoundPerTitle com
 JOIN EldestPerTitle ept ON com.Title = ept.Title AND com.BirthDate = ept.Eldest
 JOIN HighestSalaryPerTitle hspt ON com.Title = hspt.Title AND com.Salary = hspt.HighestEarner
 JOIN Employees e ON e.Title = com.Title AND e.Salary = com.Salary AND e.BirthDate = com.BirthDate
-
+GO
 
 -- 9. Execute the following script:
 CREATE TABLE Parts 
@@ -231,4 +249,4 @@ NewParts AS(
 )
 SELECT *
 FROM NewParts
-
+GO
