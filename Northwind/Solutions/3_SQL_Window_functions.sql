@@ -269,9 +269,27 @@ WITH RevenuePerYearAndMonth AS(
 SELECT *
 FROM RevenuePerYearAndMonth
 ORDER BY Year, Month
+GO
 
 -- Step 2: Add an extra column for each row with the revenue of the previous month
-
+WITH 
+RevenuePerYearAndMonth AS(
+	SELECT 
+		YEAR(o.OrderDate) AS Year, 
+		MONTH(o.OrderDate) AS Month, 
+		SUM(od.Quantity * od.UnitPrice) AS Revenue
+	FROM Orders o
+	JOIN OrderDetails od ON o.OrderID = od.OrderID
+	GROUP BY YEAR(OrderDate), MONTH(OrderDate)
+),
+RevenuePerYearAndMonthWithPrevMonth AS(
+	SELECT *, LAG(Revenue) OVER(ORDER BY Year, Month) AS RevenuePrevMonth
+	FROM RevenuePerYearAndMonth
+)
+SELECT *
+FROM RevenuePerYearAndMonthWithPrevMonth
+ORDER BY Year, Month
+GO
 
 -- Step 3: Calculate the percentage difference between this month and the previous month
 
