@@ -89,7 +89,19 @@ ORDER BY ProductID
 3	2018	108	190	-43.16%
 ...
 */
-
+WITH YearDetailsCTE AS(
+	SELECT od.ProductID, YEAR(o.OrderDate) AS YearSold, SUM(od.Quantity) AS TotalQuantity
+	FROM OrderDetails od
+	JOIN Orders o ON od.OrderID = o.OrderID
+	GROUP BY od.ProductID, YEAR(o.OrderDate)
+),
+YearDetailsWithComparisionCTE AS(
+	SELECT x.ProductID, x.YearSold, x.TotalQuantity, LAG(x.TotalQuantity) OVER (PARTITION BY x.ProductId ORDER BY x.ProductID, x.YearSold) AS TotalQuantityPrev
+	FROM YearDetailsCTE x
+)
+SELECT *, ISNULL(FORMAT((TotalQuantity * 1.00 / TotalQuantityPrev - 1), 'P2'), 'N/A') AS YearOverYearPerformance
+FROM YearDetailsWithComparisionCTE
+ORDER BY ProductID
 
 -- Exercise 3
 -- Which is the most popular shipper
