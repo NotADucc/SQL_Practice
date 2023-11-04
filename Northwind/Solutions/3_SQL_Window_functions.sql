@@ -190,7 +190,18 @@ ORDER BY EmployeeID, OrderYear
 9	2016	11365,70	9
 ...
 */
-
+WITH AnualRevenuePerEmployee AS(
+	SELECT o.EmployeeID, YEAR(o.OrderDate) AS OrderYear, SUM(od.Quantity * od.UnitPrice) AS TotalRevenue
+	FROM Orders o
+	JOIN OrderDetails od ON o.OrderID = od.OrderID
+	GROUP BY EmployeeID, YEAR(OrderDate)
+),
+AnualRevenuePerEmployeeRanks AS(
+	SELECT *, RANK() OVER(PARTITION BY OrderYear ORDER BY OrderYear, TotalRevenue DESC) AS TotalRevenueRank
+	FROM AnualRevenuePerEmployee
+)
+SELECT *
+FROM AnualRevenuePerEmployeeRanks
 
 
 -- Step 3: Imagine there is a bonussystem for all the employees: the best employee gets 10 000EUR bonus, 
