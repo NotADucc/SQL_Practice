@@ -21,7 +21,7 @@ Brazil		4		Hanari Carnes
 SELECT Country, ROW_NUMBER() OVER (PARTITION BY Country ORDER BY Country) rownum, CompanyName
 FROM Customers
 ORDER BY Country
-
+GO
 
 -- Exercise 2
 -- We want to calculate the year over year perfomance for each product.
@@ -43,7 +43,7 @@ FROM OrderDetails od
 JOIN Orders o ON od.OrderID = o.OrderID
 GROUP BY od.ProductID, YEAR(o.OrderDate)
 ORDER BY ProductID
-
+GO
 
 -- Step 2: Turn the previous query into a CTE. 
 -- Now create an overview that shows for each productid the amount sold per year and for the previous year.
@@ -72,7 +72,7 @@ YearDetailsWithComparisionCTE AS(
 SELECT *
 FROM YearDetailsWithComparisionCTE
 ORDER BY ProductID
-
+GO
 
 -- Step 3: Use a CTE and the previous SQL Query to calculate the year over year performance for each productid. 
 -- If the amountPreviousYear is NULL, then the year over year performance becomes N/A. Use the function IFNULL
@@ -102,6 +102,7 @@ YearDetailsWithComparisionCTE AS(
 SELECT *, ISNULL(FORMAT((TotalQuantity * 1.00 / TotalQuantityPrev - 1), 'P2'), 'N/A') AS YearOverYearPerformance
 FROM YearDetailsWithComparisionCTE
 ORDER BY ProductID
+GO
 
 -- Exercise 3
 -- Which is the most popular shipper
@@ -119,6 +120,7 @@ SELECT s.ShipperID, s.CompanyName, dr.ShipVia, dr.NumberOfOrders, dr.Rank AS DEN
 FROM DenseRanks dr
 JOIN Shippers s ON dr.ShipVia = s.ShipperID
 WHERE dr.Rank = 1
+GO
 
 -- Exercise 4
 -- Which is the TOP 3 of countries in which most customers live?
@@ -142,7 +144,7 @@ WITH DenseRanks AS(
 SELECT *
 FROM DenseRanks
 WHERE DENSE_RANK <= 3
-
+GO
 
 
 -- Exercise 5: 
@@ -174,7 +176,7 @@ WITH AnualRevenuePerEmployee AS(
 SELECT *
 FROM AnualRevenuePerEmployee
 ORDER BY EmployeeID, OrderYear
-
+GO
 
 
 -- Step 2: Now add a ranking per year per employeeid
@@ -202,7 +204,7 @@ AnualRevenuePerEmployeeRanks AS(
 )
 SELECT *
 FROM AnualRevenuePerEmployeeRanks
-
+GO
 
 -- Step 3: Imagine there is a bonussystem for all the employees: the best employee gets 10 000EUR bonus, 
 -- the second one 5000 EUR, the third one 3333 EUR, …
@@ -219,8 +221,6 @@ FROM AnualRevenuePerEmployeeRanks
 9	2016	11365,70	1111
 ...
 */
-
-
 
 
 -- Exercise 6 
