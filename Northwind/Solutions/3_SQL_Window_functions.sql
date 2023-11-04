@@ -388,8 +388,17 @@ BERGS	2017	10	18
 BERGS	2018	5	18
 ...
 */
-
-
+WITH Base AS(
+	SELECT 
+		CustomerID, 
+		YEAR(OrderDate) AS Year,
+		COUNT(CustomerID) AS NrOfOrders
+	FROM Orders
+	GROUP BY CustomerID, YEAR(OrderDate)
+)
+SELECT *, SUM(NrOfOrders) OVER(PARTITION BY CustomerID) AS TotalOrders
+FROM Base
+ORDER BY CustomerID, Year
 
 
 
