@@ -360,6 +360,9 @@ GO
 28	Gai pâturage				France	3
 ...
 */
+SELECT CompanyName, Country, DENSE_RANK() OVER(PARTITION BY Country ORDER BY Country, CompanyName)
+FROM Suppliers
+ORDER BY Country, CompanyName
 
 
 
