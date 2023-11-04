@@ -329,7 +329,21 @@ ANTON	2017	6
 ANTON	2018	7
 ...
 */
-
+WITH OrdersPerYear AS(
+	SELECT 
+		CustomerID AS CustomerId, 
+		YEAR(OrderDate) AS Year, 
+		COUNT(CustomerID) AS NrOfOrders
+	FROM Orders
+	GROUP BY CustomerID, YEAR(OrderDate)
+)
+SELECT 
+	CustomerId,
+	Year,
+	SUM(NrOfOrders) OVER(PARTITION BY CustomerId ORDER BY CustomerId, Year) AS CumulativeOrders
+FROM OrdersPerYear
+ORDER BY CustomerId
+GO
 
 
 -- Give the cumulative number of Suppliers for each country
