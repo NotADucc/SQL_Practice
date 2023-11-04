@@ -66,7 +66,7 @@ WITH YearDetailsCTE AS(
 	GROUP BY od.ProductID, YEAR(o.OrderDate)
 ),
 YearDetailsWithComparisionCTE AS(
-	SELECT x.ProductID, x.YearSold, x.TotalQuantity, LAG(x.TotalQuantity) OVER (ORDER BY x.ProductID, x.YearSold) AS TotalQuantityPrev
+	SELECT x.ProductID, x.YearSold, x.TotalQuantity, LAG(x.TotalQuantity) OVER (PARTITION BY x.ProductId ORDER BY x.ProductID, x.YearSold) AS TotalQuantityPrev
 	FROM YearDetailsCTE x
 )
 SELECT *
