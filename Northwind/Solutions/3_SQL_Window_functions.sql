@@ -131,7 +131,17 @@ WHERE dr.Rank = 1
 --France	11	2
 --Germany	11	2
 --Brazil	9	3
-
+WITH DenseRanks AS(
+	SELECT 
+		Country, 
+		COUNT(Country) AS NumberOfCustomers,
+		DENSE_RANK() OVER(ORDER BY COUNT(Country) DESC) AS DENSE_RANK
+	FROM Customers
+	GROUP BY Country
+)
+SELECT *
+FROM DenseRanks
+WHERE DENSE_RANK <= 3
 
 
 
@@ -155,7 +165,15 @@ WHERE dr.Rank = 1
 4	2018	57594,95
 ...
 */
-
+WITH AnualRevenuePerEmployee AS(
+	SELECT o.EmployeeID, YEAR(o.OrderDate) AS OrderYear, SUM(od.Quantity * od.UnitPrice) AS TotalRevenue
+	FROM Orders o
+	JOIN OrderDetails od ON o.OrderID = od.OrderID
+	GROUP BY EmployeeID, YEAR(OrderDate)
+)
+SELECT *
+FROM AnualRevenuePerEmployee
+ORDER BY EmployeeID, OrderYear
 
 
 
