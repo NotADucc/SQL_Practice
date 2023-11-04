@@ -110,8 +110,15 @@ ORDER BY ProductID
 
 -- ShipperID	CompanyName	ShipVia	NumberOfOrders	DENSE_RANK
 -- 2	United Package	2	326	1
-
-
+WITH DenseRanks AS(
+	SELECT ShipVia, COUNT(ShipVia) AS NumberOfOrders, DENSE_RANK() OVER (ORDER BY COUNT(ShipVia) DESC) AS 'Rank'
+	FROM Orders
+	GROUP BY ShipVia
+)
+SELECT s.ShipperID, s.CompanyName, dr.ShipVia, dr.NumberOfOrders, dr.Rank AS DENSE_RANK
+FROM DenseRanks dr
+JOIN Shippers s ON dr.ShipVia = s.ShipperID
+WHERE dr.Rank = 1
 
 -- Exercise 4
 -- Which is the TOP 3 of countries in which most customers live?
