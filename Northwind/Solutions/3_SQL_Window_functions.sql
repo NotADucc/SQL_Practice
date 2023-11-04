@@ -399,7 +399,7 @@ WITH Base AS(
 SELECT *, SUM(NrOfOrders) OVER(PARTITION BY CustomerID) AS TotalOrders
 FROM Base
 ORDER BY CustomerID, Year
-
+GO
 
 
 -- Give the relative number of Customers for each country using PARTITION BY
@@ -417,7 +417,55 @@ Ireland	1.10%
 */
 
 -- Step 1: Calculate for each country the number of customers for this country and the total number of customers using PARTITION BY
+WITH 
+CustomersPerCountry AS(
+	SELECT 
+		Country, 
+		COUNT(Country) AS TotalCustomersPerCountry,
+		1 as Cheat
+	FROM Customers
+	GROUP BY Country
+),
+TotalCustomers AS(
+	SELECT Country, TotalCustomersPerCountry, SUM(TotalCustomersPerCountry) OVER(PARTITION BY Cheat) AS TotalCustomers
+	FROM CustomersPerCountry
+)
+SELECT *
+FROM TotalCustomers
+GO
+
 -- Step 2: Calculate the relative number of customers per country
+WITH 
+CustomersPerCountry AS(
+	SELECT 
+		Country, 
+		COUNT(Country) AS TotalCustomersPerCountry,
+		1 as Cheat
+	FROM Customers
+	GROUP BY Country
+),
+TotalCustomers AS(
+	SELECT *, SUM(TotalCustomersPerCountry) OVER(PARTITION BY Cheat) AS TotalCustomers
+	FROM CustomersPerCountry
+)
+SELECT Country, FORMAT(TotalCustomersPerCountry * 1.00 / TotalCustomers, 'P2') AS RelativePercentage
+FROM TotalCustomers
+GO
+
 
 -- Alternative??
-
+WITH 
+CustomersPerCountry AS(
+	SELECT 
+		Country, 
+		COUNT(Country) AS TotalCustomersPerCountry
+	FROM Customers
+	GROUP BY Country
+),
+TotalCustomers AS(
+	SELECT SUM(TotalCustomersPerCountry) AS Total
+	FROM CustomersPerCountry
+)
+SELECT Country, FORMAT(TotalCustomersPerCountry * 1.00 / (SELECT * FROM TotalCustomers), 'P2') AS RelativePercentage
+FROM CustomersPerCountry
+GO
