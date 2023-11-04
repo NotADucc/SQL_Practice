@@ -257,7 +257,18 @@ GO
 */
 
 -- Step 1: calculate the revenue per year and per month
-
+WITH RevenuePerYearAndMonth AS(
+	SELECT 
+		YEAR(o.OrderDate) AS Year, 
+		MONTH(o.OrderDate) AS Month, 
+		SUM(od.Quantity * od.UnitPrice) AS Revenue
+	FROM Orders o
+	JOIN OrderDetails od ON o.OrderID = od.OrderID
+	GROUP BY YEAR(OrderDate), MONTH(OrderDate)
+)
+SELECT *
+FROM RevenuePerYearAndMonth
+ORDER BY Year, Month
 
 -- Step 2: Add an extra column for each row with the revenue of the previous month
 
