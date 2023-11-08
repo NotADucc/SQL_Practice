@@ -2,6 +2,8 @@
 
 <pre>
 Some SQL Exercises
+
+Note: The comments made in _extra files are not mine and I did not proof read them so take them with a grain of salt.
   
 Each Database folder contains these folders
   _scripts      #Contains scripts for setting up the db and filling it with base data.
