@@ -12,20 +12,6 @@ Each Database folder contains these folders
   Solutions     #Contains the solution to said exercise files.
 Optional
   _extra        #Extra information that can be handy. (I couldn't be arsed transforming it to an exercise)
-
-  
-.
-│
-└───<a href="./Northwind">Northwind</a>
-    │
-    ├───<a href="./Northwind/Exercises">Exercises</a>
-    │
-    ├───<a href="./Northwind/Solutions">Solutions</a>
-    │
-    ├───<a href="./Northwind/_extra">_extra</a>
-    │
-    └───<a href="./Northwind/_scripts">_scripts</a>
-
 </pre>
 
 ##  Prerequisites
