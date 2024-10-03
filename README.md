@@ -12,6 +12,7 @@ Each Database folder contains these folders
   Solutions     #Contains the solution to said exercise files.
 Optional
   _extra        #Extra information that can be handy. (I couldn't be arsed transforming it to an exercise)
+    
 </pre>
 
 ##  Prerequisites
