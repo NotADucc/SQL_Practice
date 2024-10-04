@@ -22,6 +22,7 @@ FROM Klassement k
 JOIN Ploeg p ON k.Stamnummer = p.stamnummer
 WHERE DoelpuntenVoor = (SELECT MAX(DoelpuntenVoor) FROM Klassement)
 
+
 -- Geef een overzicht van de ploegen met het grootste aantal verloren matchen in het klassement
 --ploegnaam	seizoen	aantalverloren
 --Beerschot	2021/2022 	26
@@ -98,7 +99,6 @@ WHERE AantalVerloren = 0 AND Speeldag = (SELECT MAX(speeldag) / 2 FROM klassemen
 -- Analoog als voorgaande
 -- Bereken het aantal speeldagen per seizoen in een subquery
 -- Maak gebruik van een gecorreleerde subquery
-
 DECLARE @ploegnaam VARCHAR(255) = 'Anderlecht'
 SELECT COUNT(k.Seizoen)
 FROM Klassement k
@@ -117,9 +117,9 @@ WHERE Speeldag = (SELECT MAX(Speeldag) FROM Klassement WHERE k.Seizoen = Seizoen
 -- Analoog als voorgaande
 -- Bereken het aantal speeldagen per seizoen in een subquery
 -- Maak gebruik van een gecorreleerde subquery
-
 DECLARE @ploegnaam VARCHAR(255) = 'RSC Anderlecht'
 SELECT k.Seizoen, k.Positie
 FROM Klassement k
 JOIN Ploeg p ON k.Stamnummer = p.stamnummer AND p.ploegnaam = @ploegnaam
 WHERE k.Speeldag = (SELECT MAX(Speeldag) FROM Klassement WHERE k.Seizoen = Seizoen) AND k.Positie > 4
+
