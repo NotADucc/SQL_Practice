@@ -56,19 +56,16 @@ ORDER BY CONCAT(e.FirstName, ' ', e.LastName)
 
 
 -- 6. Which employee/employees have processed the most orders? 
-SELECT CONCAT(e.FirstName, ' ', e.LastName) AS FullName, (SELECT COUNT(*) FROM Orders oo WHERE oo.EmployeeID = e.EmployeeID) AS ProcessedOrders
+SELECT CONCAT(e.FirstName, ' ', e.LastName) FullName, COUNT(*) ProcessedOrders
 FROM Employees e
-WHERE e.EmployeeID IN (
-	SELECT o.EmployeeID
-	FROM Orders o
-	GROUP BY o.EmployeeID
-	HAVING COUNT(o.EmployeeID) = (
-		SELECT MAX(maxCount) FROM (
-			SELECT COUNT(*) maxCount
-			FROM Orders oo
-			GROUP BY oo.EmployeeID
-		) maxCount
-	)
+JOIN Orders o ON e.EmployeeID = o.EmployeeID
+GROUP BY e.FirstName, e.LastName
+HAVING COUNT(*) = 
+(
+	SELECT TOP 1 COUNT(*)
+	FROM Orders
+	GROUP BY EmployeeID
+	ORDER BY COUNT(*) DESC
 )
 
 
