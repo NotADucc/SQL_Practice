@@ -22,9 +22,9 @@ Optional
 ## 'Manual'
 1. Fork or download this repo.
 2. Choose a database you want to work in.
-3. Navigate to _scipts
+3. Navigate to _scripts
 4. Double click on the sql file Create_{db_name}.sql or drag it in SSMS.
-5. if the folder contains a .csv file you need to set the variable @InitialPath with the folder directory path.
+5. If the folder contains a .csv file(s), set the @InitialPath variable in the sql script. The value should be the path of _scripts.
 
 | <img src="https://i.imgur.com/8HmLtlF.gif">   | 
 | :--- | 
