@@ -3,13 +3,15 @@
 --seizoen	aantal speeldagen
 --1975/1976 	38
 --1974/1975 	38
-
-
+SELECT DISTINCT Seizoen, Speeldag
+FROM Klassement
+WHERE Speeldag = (SELECT MAX(Speeldag) FROM Klassement)
 
 
 -- Geef de ploegen en seizoenen die het maximum aantal doelpunten scoorden in een seizoen
 --seizoen	doelpuntenvoor	ploegnaam
 --1984/1985 	100	RSC Anderlecht
+
 
 
 -- Geef een overzicht van de ploegen met het grootste aantal verloren matchen in het klassement
