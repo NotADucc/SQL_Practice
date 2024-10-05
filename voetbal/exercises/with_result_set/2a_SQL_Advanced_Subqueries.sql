@@ -6,9 +6,6 @@
 -- TIP
 -- Bereken in een subquery de maximum waarde voor het aantal speeldagen
 -- Geef vervolgens de seizoenen met het aantal speeldagen = maximum aantal speeldagen
-SELECT DISTINCT Seizoen, Speeldag
-FROM Klassement
-WHERE Speeldag = (SELECT MAX(Speeldag) FROM Klassement)
 
 
 -- 2.
@@ -19,10 +16,6 @@ WHERE Speeldag = (SELECT MAX(Speeldag) FROM Klassement)
 -- Analoog aan het voorgaande
 -- Bereken in een subquery de maximum waarde voor het aantal doelpuntenvoor
 -- Geef vervolgens de seizoenen en ploegen met doelpuntenvoor = maximum aantal doelpuntenvoor
-SELECT k.Seizoen, k.DoelpuntenVoor, p.ploegnaam
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-WHERE DoelpuntenVoor = (SELECT MAX(DoelpuntenVoor) FROM Klassement)
 
 
 -- 3.
@@ -34,10 +27,6 @@ WHERE DoelpuntenVoor = (SELECT MAX(DoelpuntenVoor) FROM Klassement)
 -- Analoog aan het voorgaande
 -- Bereken in een subquery de maximum waarde voor aantalverloren
 -- Geef vervolgens de seizoenen en ploegen met aantalverloren = maximum aantalverloren
-SELECT DISTINCT p.ploegnaam, k.AantalVerloren
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-WHERE AantalVerloren = (SELECT MAX(AantalVerloren) FROM Klassement)
 
 
 -- 4.
@@ -50,11 +39,6 @@ WHERE AantalVerloren = (SELECT MAX(AantalVerloren) FROM Klassement)
 -- Bereken het aantal seizoenen 
 -- Bereken per ploeg het aantal seizoenen
 -- Combineer de beide
-SELECT p.ploegnaam, COUNT(DISTINCT Seizoen)
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-GROUP BY p.ploegnaam
-HAVING COUNT(DISTINCT Seizoen) = (SELECT COUNT(DISTINCT Seizoen) FROM Klassement)
 
 
 -- 5.
@@ -66,10 +50,6 @@ HAVING COUNT(DISTINCT Seizoen) = (SELECT COUNT(DISTINCT Seizoen) FROM Klassement
 -- Geef enkel de wedstrijden die eindigden op gelijkstand 
 -- Bereken het aantal doelpunten in het laatste kwartier 
 -- Maak gebruik van een gecorreleerde subquery
-SELECT COUNT(DISTINCT WedstrijdID)
-FROM Wedstrijd w
-WHERE EindstandThuis = EindstandUit AND 1 = 
-(SELECT COUNT(doelpuntID) FROM Doelpunt d WHERE ScoreMinuten BETWEEN 76 AND 90 AND WedstrijdID = w.WedstrijdID)
 
 
 -- 6.
@@ -93,9 +73,6 @@ WHERE EindstandThuis = EindstandUit AND 1 =
 -- 34 speeldagen => helft van het seizoen = speeldag 17
 -- Bereken dus (de helft van) het aantal speeldagen per seizoen in een subquery
 -- Maak gebruik van een gecorreleerde subquery
-SELECT *
-FROM Klassement k
-WHERE AantalVerloren = 0 AND Speeldag = (SELECT MAX(speeldag) / 2 FROM klassement WHERE k.Seizoen = Seizoen)
 
 
 -- 7.
@@ -107,10 +84,6 @@ WHERE AantalVerloren = 0 AND Speeldag = (SELECT MAX(speeldag) / 2 FROM klassemen
 -- Bereken het aantal speeldagen per seizoen in een subquery
 -- Maak gebruik van een gecorreleerde subquery
 DECLARE @ploegnaam VARCHAR(255) = 'Anderlecht'
-SELECT COUNT(k.Seizoen)
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer AND p.ploegnaam LIKE '%' + @ploegnaam + '%' -- idk zever, kan ook LEN + RIGHT/LEFT ofzo gebruiken
-WHERE Speeldag = (SELECT MAX(Speeldag) FROM Klassement WHERE k.Seizoen = Seizoen) AND Positie = 1
 
 
 -- 8.
@@ -126,8 +99,5 @@ WHERE Speeldag = (SELECT MAX(Speeldag) FROM Klassement WHERE k.Seizoen = Seizoen
 -- Bereken het aantal speeldagen per seizoen in een subquery
 -- Maak gebruik van een gecorreleerde subquery
 DECLARE @ploegnaam VARCHAR(255) = 'RSC Anderlecht'
-SELECT k.Seizoen, k.Positie
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer AND p.ploegnaam = @ploegnaam
-WHERE k.Speeldag = (SELECT MAX(Speeldag) FROM Klassement WHERE k.Seizoen = Seizoen) AND k.Positie > 4
+
 
