@@ -2,43 +2,37 @@
 -- Een aantal statements om VoetbalDB te leren kennen
 -- Hoeveel wedstrijden zitten er in de databank?
 -- 18630
-SELECT COUNT(*)
-FROM Wedstrijd
+
 
 
 -- 2.
 -- Van hoeveel wedstrijden zijn er doelpunten beschikbaar in de databank?
 -- 14258
-SELECT COUNT(DISTINCT WedstrijdId)
-FROM Doelpunt
+
 
 
 -- 3.
 -- Wat is het eerste seizoen in de databank?
 -- 1960/1961
-SELECT MIN(Seizoen)
-FROM Klassement
+
 
 
 -- 4.
 -- Wat is het laatste seizoen in de databank
 -- 2023/2024
-SELECT MAX(Seizoen)
-FROM Klassement
+
 
 
 -- 5.
 -- Geef het maximum aantal doelpunten dat ooit gescoord werd door een ploeg gedurende een seizoen
 -- 100
-SELECT MAX(DoelpuntenVoor)
-FROM Klassement
+
 
 
 -- 6.
 -- Welk soort wedstrijden zijn er?
 -- Regulier / Playoff_1 / Playoff_2
-SELECT DISTINCT WedstrijdType
-FROM Wedstrijd
+
 
 
 -- 7.
@@ -46,9 +40,7 @@ FROM Wedstrijd
 -- Playoff_1	336
 -- Regulier	17906
 -- Playoff_2	388
-SELECT WedstrijdType, COUNT(*)
-FROM Wedstrijd
-GROUP BY WedstrijdType
+
 
 
 -- 8.
@@ -60,51 +52,37 @@ GROUP BY WedstrijdType
 -- 1975/1976 	38
 -- 1976/1977 	34
 -- ...
-SELECT Seizoen, MAX(Speeldag)
-FROM Klassement
-GROUP BY Seizoen
-ORDER BY Seizoen
+
 
 
 -- 9.
 -- Geef het aantal matchen waarbij de thuisploeg won met meer dan 2 doelpunten verschil 
 -- 2429
-SELECT COUNT(*)
-FROM Wedstrijd
-WHERE EindstandThuis > EindstandUit + 2
+
 
 
 -- 10.
 -- Hoe vaak eindigt een reguliere wedstrijd op 0-0
 -- 1502
-SELECT COUNT(*)
-FROM Wedstrijd
-WHERE WedstrijdType = 'regulier' AND EindstandThuis = EindstandUit AND EindstandThuis = 0
+
 
 
 -- 11.
 -- Hoe vaak eindigt een wedstrijd op gelijkstand?
 -- 4807
-SELECT COUNT(*)
-FROM Wedstrijd
-WHERE EindstandThuis = EindstandUit
+
 
 
 -- 12.
 -- Als de ploegnaam van een club wordt gegeven, hoeveel jaar nam die ploeg deel aan de competitie?
 -- 14
 DECLARE @ploegnaam VARCHAR(255) = 'KV Oostende'
-SELECT COUNT(DISTINCT Seizoen)
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer AND p.ploegnaam = @ploegnaam
 
 
 -- 13.
 -- In hoeveel wedstrijden bedroeg het totaal aantal doelpunten meer dan 10 (10 exclusief)?
 -- 16
-SELECT COUNT(*)
-FROM Wedstrijd
-WHERE EindstandThuis + EindstandUit > 10
+
 
 
 -- 14.
@@ -120,9 +98,6 @@ WHERE EindstandThuis + EindstandUit > 10
 --3:1	996
 --2:2	963
 --3:0	853
-SELECT CONCAT(EindstandThuis, ':', EindstandUit), COUNT(*)
-FROM Wedstrijd
-GROUP BY EindstandThuis, EindstandUit
-ORDER BY COUNT(*) DESC
+
 
 
