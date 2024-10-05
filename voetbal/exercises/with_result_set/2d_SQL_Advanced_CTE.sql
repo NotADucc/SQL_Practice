@@ -4,15 +4,6 @@
 -- Creëer een CTE die het maximum aantal speeldagen per seizoen berekent
 -- Maak gebruik van deze CTE om het aantal verloren matchen te kennen op de laatste speeldag
 -- Het resultaat is leeg
-WITH aantalDagenSeizoen AS (
-	SELECT Seizoen, MAX(Speeldag) maxDagen
-	FROM Klassement
-	GROUP BY Seizoen
-)
-SELECT *
-FROM Klassement k
-JOIN aantalDagenSeizoen ad ON k.Seizoen = ad.Seizoen AND k.Speeldag = ad.maxDagen
-WHERE AantalVerloren = 0
 
 
 -- 1.
@@ -21,6 +12,7 @@ WHERE AantalVerloren = 0
 -- CTE die het aantal reguliere wedstrijden telt waarbij Thuis of Uit score gelijk is aan 0
 -- Combineer de beide CTE's
 -- 40.36%
+
 
 -- 1.
 -- In 1995 werd overgeschakeld van het 2 punten systeem naar het 3 punten systeem.
@@ -31,8 +23,6 @@ WHERE AantalVerloren = 0
 -- ...
 --Gemiddeld aantal doelpunten voor 1995	Gemiddeld aantal doelpunten na 1995
 --2.740501								2.902450
-
-
 
 
 -- 1.
@@ -66,20 +56,12 @@ WHERE AantalVerloren = 0
 -- 66.6% 
 
 
-
-
-
-
-
 -- Hoeveel procent van de ploegen die op speeldag 10 in de top 6 staan, staan op de laatste speeldag ook nog in de top 6 van het klassement?
 -- Maak een CTE die seizoen + stamnummer bevat van de ploegen die op speeldag 10 in top 6 van klassement staan
 -- Maak een CTE die per seizoen de laatste speeldag geeft (30 / 34 / 38)
 -- Maak met behulp van de voorgaande CTE een nieuwe CTE die seizoen + stamnummer bevat van de ploegen die op de laatste speeldag in top 6 van klassement staan
 -- Combineer de eerste en laatste CTE om het resultaat te kennen
 -- 73.17%
-
-
-
 
 
 -- Geef per seizoen een lijst met alle wedstrijden met een maximum totaal aantal doelpunten
