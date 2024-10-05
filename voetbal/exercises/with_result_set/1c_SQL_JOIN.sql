@@ -13,10 +13,6 @@
 -- ...
 DECLARE @ploegnaam VARCHAR(255) = 'Club Brugge'
 DECLARE @seizoen VARCHAR(10) = '2014/2015'
-SELECT k.Speeldag, k.Positie
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-WHERE k.Seizoen = @seizoen AND p.ploegnaam = @ploegnaam
 
 
 -- 2.
@@ -32,11 +28,6 @@ WHERE k.Seizoen = @seizoen AND p.ploegnaam = @ploegnaam
 --1978/1979 	Berchem Sport
 --1978/1979 	KV Kortrijk
 --...
-SELECT k.Seizoen, p.ploegnaam
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-WHERE k.Speeldag = 10 AND k.AantalGewonnen = 0
-ORDER BY k.Seizoen
 
 
 -- 3.
@@ -44,12 +35,6 @@ ORDER BY k.Seizoen
 -- 52
 DECLARE @ploegnaam1 VARCHAR(255) = 'Club Brugge'
 DECLARE @ploegnaam2 VARCHAR(255) = 'Cercle Brugge'
-SELECT COUNT(*) 'Count'
-FROM Wedstrijd w
-JOIN Ploeg p_t ON w.StamnummerThuis = p_t.stamnummer
-JOIN Ploeg p_u ON w.StamnummerUit = p_u.stamnummer
-WHERE p_t.ploegnaam IN(@ploegnaam1, @ploegnaam2) AND p_u.ploegnaam IN (@ploegnaam1, @ploegnaam2)
-AND EindstandThuis > 0 AND EindstandUit > 0
 
 
 -- 4.
@@ -57,12 +42,6 @@ AND EindstandThuis > 0 AND EindstandUit > 0
 -- Als de ploegnaam van een club gegeven wordt, laat dan zien hoeveel seizoenen een club in Play Off 1 en in Play Off 2 heeft gespeeld tot nu toe.
 -- 65
 DECLARE @ploegnaam VARCHAR(255) = 'Club Brugge'
-SELECT COUNT(DISTINCT YEAR(w.Speeldatum))
-FROM Wedstrijd w
-JOIN Ploeg p_t ON w.StamnummerThuis = p_t.stamnummer
-JOIN Ploeg p_u ON w.StamnummerUit = p_u.stamnummer
-WHERE p_t.ploegnaam = @ploegnaam OR p_u.ploegnaam = @ploegnaam 
-
 
 
 -- 5.
@@ -85,18 +64,6 @@ WHERE p_t.ploegnaam = @ploegnaam OR p_u.ploegnaam = @ploegnaam
 --9258	1993-04-30	Standard Luik	KAA Gent	8	4
 --11122	1999-08-08	KVC Westerlo	KRC Genk	6	6
 --15587	2014-05-17	KV Oostende	KV Kortrijk	9	8
-SELECT 
-	w.WedstrijdID, 
-	w.Speeldatum 'speeldatum', 
-	p_t.ploegnaam, 
-	p_u.ploegnaam, 
-	w.EindstandThuis 'eindstandthuis', 
-	w.EindstandUit 'eindstanduit'
-FROM Wedstrijd w
-JOIN Ploeg p_t ON w.StamnummerThuis = p_t.stamnummer
-JOIN Ploeg p_u ON w.StamnummerUit = p_u.stamnummer
-WHERE w.EindstandThuis + w.EindstandUit > 10
-
 
 
 -- 6.
@@ -112,15 +79,6 @@ WHERE w.EindstandThuis + w.EindstandUit > 10
 --8	1960-09-04	4	7	1960/1961
 --9	1960-09-11	35	4	1960/1961
 --10	1960-09-11	33	553	1960/1961
-SELECT 
-	WedstrijdID,
-	Speeldatum,
-	StamnummerThuis,
-	StamnummerUit,
-	Seizoen = CASE WHEN MONTH(Speeldatum) <= 6 
-		THEN CONCAT(YEAR(Speeldatum) - 1, '/', YEAR(Speeldatum))
-		ELSE CONCAT(YEAR(Speeldatum), '/', YEAR(Speeldatum) + 1) END
-FROM Wedstrijd
 
 
 -- 7.
@@ -136,17 +94,6 @@ FROM Wedstrijd
 --8	1960-09-04	RFC Luik	KAA Gent	1960/1961
 --9	1960-09-11	RSC Anderlecht	RFC Luik	1960/1961
 --10	1960-09-11	Verviétois	Waterschei SV Thor	1960/1961
-SELECT 
-	w.WedstrijdID,
-	w.Speeldatum,
-	p_t.ploegnaam,
-	p_u.ploegnaam,
-	Seizoen = CASE WHEN MONTH(w.Speeldatum) <= 6 
-		THEN CONCAT(YEAR(w.Speeldatum) - 1, '/', YEAR(w.Speeldatum))
-		ELSE CONCAT(YEAR(w.Speeldatum), '/', YEAR(w.Speeldatum) + 1) END
-FROM Wedstrijd w
-JOIN Ploeg p_t ON w.StamnummerThuis = p_t.stamnummer
-JOIN Ploeg p_u ON w.StamnummerThuis = p_u.stamnummer
 
 
 -- 8.
@@ -162,16 +109,6 @@ JOIN Ploeg p_u ON w.StamnummerThuis = p_u.stamnummer
 --Royal Antwerp FC	47
 --KV Mechelen	45
 --...
-SELECT ploegnaam, COUNT(*) 'Aantal seizoenen'
-FROM
-(
-	SELECT p.ploegnaam
-	FROM Klassement k
-	JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-	GROUP BY k.Seizoen, p.ploegnaam
-) sb
-GROUP BY ploegnaam
-ORDER BY COUNT(*) DESC
 
 
 -- 9.
@@ -189,17 +126,6 @@ ORDER BY COUNT(*) DESC
 --Sint-Truidense VV	44
 --KSC Lokeren	42
 --KRC Genk	42
-SELECT ploegnaam, COUNT(*) 'Aantal seizoenen'
-FROM
-(
-	SELECT p.ploegnaam
-	FROM Klassement k
-	JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-	GROUP BY k.Seizoen, p.ploegnaam
-) sb
-GROUP BY ploegnaam
-HAVING COUNT(*) > 40
-ORDER BY COUNT(*) DESC
 
 
 -- 9.
@@ -213,10 +139,6 @@ ORDER BY COUNT(*) DESC
 --Boom FC	6
 --Cercle Brugge	17
 --Club Brugge	26
-SELECT p.ploegnaam, MAX(AantalGewonnen)
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.Stamnummer
-GROUP BY p.ploegnaam
 
 
 -- 10.
@@ -241,9 +163,3 @@ GROUP BY p.ploegnaam
 --Verviétois	5
 --KFC Verbroedering Geel	5
 --KSC Hasselt	2
-SELECT p.ploegnaam, MAX(k.AantalGewonnen)
-FROM Klassement k
-JOIN Ploeg p ON k.Stamnummer = p.stamnummer
-WHERE k.Stamnummer NOT IN (SELECT stamnummer FROM Klassement WHERE stamnummer = k.Stamnummer AND AantalGewonnen > 10)
-GROUP BY p.ploegnaam
-ORDER BY MAX(k.AantalGewonnen) DESC 
