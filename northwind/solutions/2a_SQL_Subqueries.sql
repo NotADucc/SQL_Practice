@@ -60,8 +60,7 @@ SELECT CONCAT(e.FirstName, ' ', e.LastName) FullName, COUNT(*) ProcessedOrders
 FROM Employees e
 JOIN Orders o ON e.EmployeeID = o.EmployeeID
 GROUP BY e.FirstName, e.LastName
-HAVING COUNT(*) = 
-(
+HAVING COUNT(*) = (
 	SELECT TOP 1 COUNT(*)
 	FROM Orders
 	GROUP BY EmployeeID
@@ -70,19 +69,17 @@ HAVING COUNT(*) =
 
 
 -- 7. What are the most common ContactTitle in Customers?
-SELECT DISTINCT ContactTitle 
+SELECT DISTINCT ContactTitle
 FROM Customers
 WHERE ContactTitle IN (
 	SELECT ContactTitle
-	FROM Customers c
-	GROUP BY c.ContactTitle
-	HAVING COUNT(c.ContactTitle) = (
-		SELECT MAX(maxCount) 
-		FROM (
-			SELECT COUNT(*) maxCount
-			FROM Customers cc
-			GROUP BY cc.ContactTitle
-		) AS maxCount
+	FROM Customers
+	GROUP BY ContactTitle
+	HAVING COUNT(ContactTitle) = (
+		SELECT TOP 1 COUNT(*) 
+		FROM Customers 
+		GROUP BY ContactTitle 
+		ORDER BY COUNT(ContactTitle) DESC
 	)
 )
 
