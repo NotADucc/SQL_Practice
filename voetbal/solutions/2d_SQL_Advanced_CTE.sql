@@ -13,6 +13,7 @@ SELECT *
 FROM Klassement k
 JOIN aantalDagenSeizoen ad ON k.Seizoen = ad.Seizoen AND k.Speeldag = ad.maxDagen
 WHERE AantalVerloren = 0
+GO
 
 
 -- 2.
@@ -33,6 +34,7 @@ dominanteRegulierWedstrijden AS (
 )
 SELECT (SELECT AantalDominanteReguliereWedstrijden FROM dominanteRegulierWedstrijden) * 100.0 / AantalReguliereWedstrijden
 FROM aantalReguliereWedstrijden
+GO
 -- no clue how you get 40.36%, i get 39.874902267396
 
 
@@ -58,7 +60,7 @@ cte_2 AS (
 SELECT 
 	(SELECT doelPunten * 1.0 / totaal FROM cte_1) 'Gemiddeld aantal doelpunten voor 1995',
 	(SELECT doelPunten * 1.0 / totaal FROM cte_2) 'Gemiddeld aantal doelpunten na 1995'
-
+GO
 
 
 -- 4.
@@ -88,6 +90,7 @@ FROM
 	UNION 
 	SELECT doelPunten FROM tweedeHelft
 ) t
+GO
 
 
 -- 5.
@@ -100,7 +103,26 @@ FROM
 --Gelijk	0.258024691358
 --Thuis		0.481910896403
 --Uit		0.260064412238
-
+WITH winnaarWedstrijden AS (
+	SELECT 
+		SUM(CASE WHEN EindstandThuis > EindstandUit THEN 1.0 ELSE 0.0 END) thuis,
+		SUM(CASE WHEN EindstandThuis < EindstandUit THEN 1.0 ELSE 0.0 END) uit,
+		SUM(CASE WHEN EindstandThuis = EindstandUit THEN 1.0 ELSE 0.0 END) gelijk
+	FROM Wedstrijd
+),
+totaalWedstrijden AS (
+	SELECT COUNT(*) totaal
+	FROM Wedstrijd
+)
+SELECT 'Gelijk' 'WieWint', gelijk / (SELECT * FROM totaalWedstrijden) 'procentueel deel'
+FROM winnaarWedstrijden
+UNION ALL
+SELECT 'Thuis' 'WieWint', thuis / (SELECT * FROM totaalWedstrijden) 'procentueel deel'
+FROM winnaarWedstrijden
+UNION ALL
+SELECT 'Uit' 'WieWint', uit / (SELECT * FROM totaalWedstrijden) 'procentueel deel'
+FROM winnaarWedstrijden
+GO
 
 
 -- 6.
@@ -109,10 +131,45 @@ FROM
 -- CTE die aantal stadsderby's tussen de beide ploegen telt
 -- CTE die aantal stadsderby's telt waarbij Club Brugge won
 -- 66.6% 
+DECLARE @ploeg1 VARCHAR(55) = 'Club Brugge';
+DECLARE @ploeg2 VARCHAR(55) = 'Cercle Brugge';
+WITH beideTotaal AS (
+	SELECT COUNT(*) totaal
+	FROM Wedstrijd w
+	JOIN Ploeg p_t ON w.StamnummerThuis = p_t.stamnummer
+	JOIN Ploeg p_u ON w.StamnummerUit = p_u.stamnummer
+	WHERE p_t.ploegnaam IN (@ploeg1) AND p_u.ploegnaam IN(@ploeg2)
+),
+ploeg1Totaal AS (
+	SELECT COUNT(*) totaal
+	FROM Wedstrijd w
+	JOIN Ploeg p_t ON w.StamnummerThuis = p_t.stamnummer
+	JOIN Ploeg p_u ON w.StamnummerUit = p_u.stamnummer
+	WHERE p_t.ploegnaam IN (@ploeg1) AND p_u.ploegnaam IN(@ploeg2) AND w.EindstandThuis > w.EindstandUit
+)
+SELECT CONCAT((SELECT totaal FROM ploeg1Totaal) * 100.0 / totaal, '%')
+FROM beideTotaal
+GO
 
+-- Description is kinda shitty
 
-
-
+DECLARE @ploeg1 VARCHAR(55) = 'Club Brugge';
+DECLARE @ploeg2 VARCHAR(55) = 'Cercle Brugge';
+WITH beideTotaal AS (
+	SELECT w.EindstandThuis, w.EindstandUit
+	FROM Wedstrijd w
+	JOIN Ploeg p_t ON w.StamnummerThuis = p_t.stamnummer
+	JOIN Ploeg p_u ON w.StamnummerUit = p_u.stamnummer
+	WHERE p_t.ploegnaam IN (@ploeg1) AND p_u.ploegnaam IN(@ploeg2)
+),
+ploeg1Totaal AS (
+	SELECT COUNT(*) totaal
+	FROM beideTotaal
+	WHERE EindstandThuis > EindstandUit
+)
+SELECT CONCAT((SELECT totaal FROM ploeg1Totaal) * 100.0 / COUNT(*), '%')
+FROM beideTotaal
+GO
 
 
 -- 7.
