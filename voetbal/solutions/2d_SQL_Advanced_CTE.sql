@@ -69,6 +69,25 @@ SELECT
 -- Combineer de beide CTE's
 --Eerste helft	Tweede helft
 --0.431732863697	0.568267136302
+WITH eersteHelft AS (
+	SELECT COUNT(*) doelPunten
+	FROM Doelpunt
+	WHERE ScoreMinuten <= 45
+),
+tweedeHelft AS (
+	SELECT COUNT(*) doelPunten
+	FROM Doelpunt
+	WHERE ScoreMinuten > 45 AND ScoreMinuten <= 90
+)
+SELECT 
+	(SELECT * FROM eersteHelft) * 1.0 / SUM(doelPunten) 'Eerste helft',
+	(SELECT * FROM tweedeHelft) * 1.0 / SUM(doelPunten) 'Tweede helft'
+FROM 
+(
+	SELECT doelPunten FROM eersteHelft
+	UNION 
+	SELECT doelPunten FROM tweedeHelft
+) t
 
 
 -- 5.
