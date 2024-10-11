@@ -32,7 +32,7 @@ dominanteRegulierWedstrijden AS (
 	FROM Wedstrijd
 	WHERE WedstrijdType = 'regulier' AND ((EindstandThuis != 0 AND EindstandUit = 0) OR (EindstandThuis = 0 AND EindstandUit != 0))
 )
-SELECT (SELECT AantalDominanteReguliereWedstrijden FROM dominanteRegulierWedstrijden) * 100.0 / AantalReguliereWedstrijden
+SELECT FORMAT((SELECT AantalDominanteReguliereWedstrijden FROM dominanteRegulierWedstrijden) * 1.0 / AantalReguliereWedstrijden, 'P')
 FROM aantalReguliereWedstrijden
 GO
 -- no clue how you get 40.36%, i get 39.874902267396
@@ -167,7 +167,7 @@ ploeg1Totaal AS (
 	FROM beideTotaal
 	WHERE EindstandThuis > EindstandUit
 )
-SELECT CONCAT((SELECT totaal FROM ploeg1Totaal) * 100.0 / COUNT(*), '%')
+SELECT FORMAT((SELECT totaal FROM ploeg1Totaal) * 1.0 / COUNT(*), 'P')
 FROM beideTotaal
 GO
 
@@ -199,3 +199,34 @@ GO
 --971	1964/1965	RFC Luik	Beringen FC	11
 --1049	1964/1965	RFC Tilleur	Royal Antwerp FC	11
 
+WITH cte1 AS (
+	SELECT *,
+	CASE 
+		WHEN MONTH(Speeldatum) IN (7, 8, 9, 10, 11, 12) THEN CONCAT(YEAR(Speeldatum),'/',YEAR(Speeldatum) + 1)
+		ELSE CONCAT(YEAR(Speeldatum) - 1,'/',YEAR(Speeldatum))
+		END 'Seizoen'
+	FROM Wedstrijd
+),
+cte2 AS (
+	SELECT Seizoen, MAX(EindstandThuis + EindstandUit) 'max_doelpunten'
+	FROM cte1
+	GROUP BY Seizoen
+)
+SELECT cte1.WedstrijdID, cte1.Seizoen, p1.ploegnaam, p2.ploegnaam, cte2.max_doelpunten 'aantal_doelpunten'
+FROM cte1
+JOIN cte2 ON cte1.Seizoen = cte2.Seizoen AND EindstandThuis + EindstandUit = max_doelpunten
+JOIN Ploeg p1 ON cte1.StamnummerThuis = p1.stamnummer
+JOIN Ploeg p2 ON cte1.StamnummerUit = p2.stamnummer
+GO
+
+
+-- 9.
+-- In hoeveel procent van de wedstrijden is de eindstand gelijk
+-- 25.80%
+WITH cte1 AS (
+	SELECT COUNT(*) totaal
+	FROM Wedstrijd
+	WHERE EindstandThuis = EindstandUit
+)
+SELECT FORMAT((SELECT totaal FROM cte1) * 1.0 / COUNT(*), 'P')
+FROM Wedstrijd
