@@ -63,3 +63,5 @@
 --wedstrijdid	seizoen	ploegnaam	ploegnaam	aantal_doelpunten
 
 
+-- 9.
+-- In hoeveel procent van de wedstrijden is de eindstand gelijk

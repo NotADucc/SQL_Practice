@@ -201,6 +201,7 @@ max_seizoen_posities AS (
 SELECT FORMAT(COUNT(*) * 1.0 / (SELECT COUNT(*) FROM tiende_speeldag), 'P')
 FROM max_seizoen_posities msp
 JOIN tiende_speeldag ts ON ts.Stamnummer = msp.Stamnummer AND ts.Seizoen = msp.Seizoen
+GO
 
 
 -- 8.

@@ -81,3 +81,7 @@
 --971	1964/1965	RFC Luik	Beringen FC	11
 --1049	1964/1965	RFC Tilleur	Royal Antwerp FC	11
 
+
+-- 9.
+-- In hoeveel procent van de wedstrijden is de eindstand gelijk
+-- 25.80%
