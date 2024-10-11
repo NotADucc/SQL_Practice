@@ -57,9 +57,10 @@ cte_2 AS (
 	FROM Wedstrijd
 	WHERE Speeldatum > CONVERT(date, '01/07/1995', 103)
 )
-SELECT 
-	(SELECT doelPunten * 1.0 / totaal FROM cte_1) 'Gemiddeld aantal doelpunten voor 1995',
-	(SELECT doelPunten * 1.0 / totaal FROM cte_2) 'Gemiddeld aantal doelpunten na 1995'
+SELECT cte_1.doelPunten * 1.0 / cte_1.totaal 'Gemiddeld aantal doelpunten voor 1995',
+	cte_2.doelPunten * 1.0 / cte_2.totaal 'Gemiddeld aantal doelpunten na 1995'
+FROM cte_1
+CROSS JOIN cte_2
 GO
 
 
@@ -82,8 +83,8 @@ tweedeHelft AS (
 	WHERE ScoreMinuten > 45 AND ScoreMinuten <= 90
 )
 SELECT 
-	(SELECT * FROM eersteHelft) * 1.0 / SUM(doelPunten) 'Eerste helft',
-	(SELECT * FROM tweedeHelft) * 1.0 / SUM(doelPunten) 'Tweede helft'
+	(SELECT * FROM eersteHelft) * 1.0 / SUM(t.doelPunten) 'Eerste helft',
+	(SELECT * FROM tweedeHelft) * 1.0 / SUM(t.doelPunten) 'Tweede helft'
 FROM 
 (
 	SELECT doelPunten FROM eersteHelft
@@ -105,23 +106,25 @@ GO
 --Uit		0.260064412238
 WITH winnaarWedstrijden AS (
 	SELECT 
-		SUM(CASE WHEN EindstandThuis > EindstandUit THEN 1.0 ELSE 0.0 END) thuis,
-		SUM(CASE WHEN EindstandThuis < EindstandUit THEN 1.0 ELSE 0.0 END) uit,
-		SUM(CASE WHEN EindstandThuis = EindstandUit THEN 1.0 ELSE 0.0 END) gelijk
+		* , 
+		CASE WHEN EindstandThuis > EindstandUit THEN 'Thuis'
+		WHEN EindstandThuis < EindstandUit THEN 'Uit'
+		ELSE 'Gelijk' END 'winnaar'
 	FROM Wedstrijd
 ),
 totaalWedstrijden AS (
 	SELECT COUNT(*) totaal
 	FROM Wedstrijd
 )
-SELECT 'Gelijk' 'WieWint', gelijk / (SELECT * FROM totaalWedstrijden) 'procentueel deel'
-FROM winnaarWedstrijden
-UNION ALL
-SELECT 'Thuis' 'WieWint', thuis / (SELECT * FROM totaalWedstrijden) 'procentueel deel'
-FROM winnaarWedstrijden
-UNION ALL
-SELECT 'Uit' 'WieWint', uit / (SELECT * FROM totaalWedstrijden) 'procentueel deel'
-FROM winnaarWedstrijden
+SELECT WieWint, totaalPerGroep * 1.0 / totaal 'procentueel deel'
+FROM 
+(
+	SELECT winnaar 'WieWint', COUNT(*) totaalPerGroep
+	FROM winnaarWedstrijden
+	GROUP BY winnaar
+) t
+CROSS JOIN totaalWedstrijden
+ORDER BY WieWint
 GO
 
 
@@ -151,7 +154,7 @@ SELECT CONCAT((SELECT totaal FROM ploeg1Totaal) * 100.0 / totaal, '%')
 FROM beideTotaal
 GO
 
--- Description is kinda shitty
+-- of
 
 DECLARE @ploeg1 VARCHAR(55) = 'Club Brugge';
 DECLARE @ploeg2 VARCHAR(55) = 'Cercle Brugge';
@@ -179,8 +182,25 @@ GO
 -- Maak met behulp van de voorgaande CTE een nieuwe CTE die seizoen + stamnummer bevat van de ploegen die op de laatste speeldag in top 6 van klassement staan
 -- Combineer de eerste en laatste CTE om het resultaat te kennen
 -- 73.17%
-
-
+WITH max_seizoen AS (
+	SELECT Seizoen, MAX(Speeldag) max_speeldag
+	FROM Klassement
+	GROUP BY Seizoen
+),
+tiende_speeldag AS (
+	SELECT Stamnummer, Seizoen
+	FROM Klassement
+	WHERE Speeldag = 10 AND Positie <= 6
+),
+max_seizoen_posities AS (
+	SELECT k.Seizoen, k.Stamnummer
+	FROM Klassement k
+	JOIN max_seizoen ms ON k.Seizoen = ms.Seizoen AND k.Speeldag = ms.max_speeldag
+	WHERE k.Positie <= 6
+)
+SELECT FORMAT(COUNT(*) * 1.0 / (SELECT COUNT(*) FROM tiende_speeldag), 'P')
+FROM max_seizoen_posities msp
+JOIN tiende_speeldag ts ON ts.Stamnummer = msp.Stamnummer AND ts.Seizoen = msp.Seizoen
 
 
 -- 8.
