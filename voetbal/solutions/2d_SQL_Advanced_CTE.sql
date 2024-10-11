@@ -93,6 +93,31 @@ FROM
 ) t
 GO
 
+-- of
+
+WITH eersteHelft AS (
+	SELECT COUNT(*) doelPunten
+	FROM Doelpunt
+	WHERE ScoreMinuten <= 45
+),
+tweedeHelft AS (
+	SELECT COUNT(*) doelPunten
+	FROM Doelpunt
+	WHERE ScoreMinuten > 45 AND ScoreMinuten <= 90
+),
+beideHelften AS (
+	SELECT COUNT(*) alleDoelpunten
+	FROM Doelpunt
+	WHERE ScoreMinuten <= 90
+)
+SELECT 
+	eh.doelPunten * 1.0 / bh.alleDoelpunten 'Eerste Helft',
+	th.doelPunten * 1.0 / bh.alleDoelpunten 'Tweede Helft'
+FROM beideHelften bh
+CROSS JOIN eersteHelft eh
+CROSS JOIN tweedeHelft th
+GO
+
 
 -- 5.
 -- Voor eens en voor altijd: bestaat er zoiets als het thuisvoordeel?
@@ -116,14 +141,10 @@ totaalWedstrijden AS (
 	SELECT COUNT(*) totaal
 	FROM Wedstrijd
 )
-SELECT WieWint, totaalPerGroep * 1.0 / totaal 'procentueel deel'
-FROM 
-(
-	SELECT winnaar 'WieWint', COUNT(*) totaalPerGroep
-	FROM winnaarWedstrijden
-	GROUP BY winnaar
-) t
+SELECT winnaar 'WieWint', COUNT(*) * 1.0 / totaal totaalPerGroep
+FROM winnaarWedstrijden
 CROSS JOIN totaalWedstrijden
+GROUP BY winnaar, totaal
 ORDER BY WieWint
 GO
 
