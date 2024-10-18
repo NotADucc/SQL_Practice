@@ -12,10 +12,25 @@
 --3	1523
 --26	1431
 --12	1463
-
-
-
-
+WITH cte_1 AS (
+	SELECT 
+		Speeldag, 
+		DoelpuntenVoor,
+		LAG(DoelpuntenVoor) OVER (ORDER BY seizoen, stamnummer, Speeldag) DoelpuntenVoorLag
+	FROM Klassement
+),
+cte_2 AS (
+	SELECT 
+		Speeldag, 
+		SUM(DoelpuntenVoor) sum_doelpunt_voor,
+		SUM(DoelpuntenVoorLag) sum_doelpunt_voor_lag
+	FROM cte_1
+	GROUP BY Speeldag
+)
+SELECT Speeldag, sum_doelpunt_voor - sum_doelpunt_voor_lag totaal
+FROM cte_2
+WHERE Speeldag <= 30
+GO
 
 
 -- Geef de Top 5 van eindscores die het vaakst voorkomen
@@ -29,11 +44,18 @@
 --0:0		1544				3
 --2:0		1524				4
 --2:1		1507				5
-
-
-
-
-
+WITH cte AS (
+	SELECT
+		CONCAT(EindstandThuis, ':', EindstandUit) as uitslag, 
+		COUNT(*) as aantal_wedstrijden,
+		DENSE_RANK() OVER (ORDER BY COUNT(*) DESC) as ranking
+	FROM Wedstrijd
+	GROUP BY EindstandThuis, EindstandUit
+)
+SELECT *
+FROM cte
+WHERE ranking <= 5
+GO
 
 
 -- Geef de Top 5 van ploegen die het vaakst kampioen werden
@@ -42,7 +64,6 @@
 -- Voeg (mbv een CTE) een ranking toe
 -- Maak de Top 5
 
-
 --ploegnaam	aantal_keer_kampioen	ranking
 --RSC Anderlecht	27					1
 --Club Brugge		17					2
@@ -50,12 +71,26 @@
 --KRC Genk			4					4
 --KSK Beveren		2					5
 --Union Saint-Gilloise	2				5
-
-
-
-
-
-
+WITH max_speeldag AS (
+	SELECT Seizoen, MAX(Speeldag) speeldag
+	FROM Klassement
+	GROUP BY Seizoen
+),
+aantal_kamp AS (
+	SELECT 
+		ploegnaam, 
+		COUNT(*) 'aantal_keer_kampioen',
+		DENSE_RANK() OVER (ORDER BY COUNT(*) DESC) ranking
+	FROM Klassement k
+	JOIN max_speeldag m ON k.Seizoen = m.Seizoen AND k.Speeldag = m.speeldag
+	JOIN Ploeg p ON k.Stamnummer = p.stamnummer
+	WHERE Positie = 1
+	GROUP BY ploegnaam
+)
+SELECT *
+FROM aantal_kamp
+WHERE ranking <= 5
+GO
 
 
 /*
