@@ -49,6 +49,7 @@ CLOSE suppliers_cursor
 
 -- deallocate cursor
 DEALLOCATE suppliers_cursor
+GO;
 
 -- Exercise
 -- Give an overview of all contactNames in Suppliers 
@@ -67,7 +68,33 @@ DEALLOCATE suppliers_cursor
 ...
 */
 
+DECLARE @companyName NVARCHAR(40), @contactName NVARCHAR(30), @contactTitle NVARCHAR(30);
 
+-- declare cursor
+DECLARE suppliers_cursor CURSOR 
+FOR
+SELECT CompanyName, ContactName, ContactTitle
+FROM Suppliers
+WHERE ContactTitle LIKE '%Manager%'
+
+-- open cursor
+OPEN suppliers_cursor
+
+-- fetch data
+FETCH NEXT FROM suppliers_cursor INTO @companyName, @contactName, @contactTitle
+
+WHILE @@FETCH_STATUS = 0 
+BEGIN 
+	PRINT @companyName + ' > ' + @contactName + ' > ' + @contactTitle
+  	FETCH NEXT FROM suppliers_cursor INTO @companyName, @contactName, @contactTitle
+END 
+
+-- close cursor
+CLOSE suppliers_cursor
+
+-- deallocate cursor
+DEALLOCATE suppliers_cursor
+GO;
 
 /************************/
 /****  Nested cursors  **/
@@ -122,7 +149,7 @@ CLOSE suppliers_cursor
 
 -- deallocate cursor
 DEALLOCATE suppliers_cursor
-
+GO;
 
 /************************/
 /** Cursor for update  **/
@@ -158,7 +185,7 @@ DEALLOCATE shippers_cursor
 
 SELECT count(shipperID) FROM Shippers
 ROLLBACK
-
+GO;
 /*************************/
 /********Exercises *******/
 /*************************/
@@ -176,7 +203,34 @@ Category:          7 Produce -->          5
 Category:          8 Seafood -->         12
 **/
 
+DECLARE @id INT, @categoryName NVARCHAR(15), @totalCount INT;
 
+-- declare cursor
+DECLARE category_cursor CURSOR 
+FOR
+SELECT c.CategoryID, c.CategoryName, COUNT(c.CategoryID) totalCount 
+FROM Categories c
+JOIN Products p ON c.CategoryId = p.CategoryID
+GROUP BY c.CategoryID, c.CategoryName
+-- open cursor
+OPEN category_cursor
+
+-- fetch data
+FETCH NEXT FROM category_cursor INTO @id, @categoryName, @totalCount
+
+WHILE @@FETCH_STATUS = 0 
+BEGIN 
+	PRINT 'Category: ' + STR(@id) + ' ' + @categoryName + ' ' + STR(@totalCount) 
+  	FETCH NEXT FROM category_cursor INTO @id, @categoryName, @totalCount
+END 
+
+-- close cursor
+CLOSE category_cursor
+
+-- deallocate cursor
+DEALLOCATE category_cursor
+
+GO;
 
 -- Exercise 2
 -- Give an overview of the employees per country. Use a nested cursor.
@@ -195,7 +249,56 @@ Category:          8 Seafood -->         12
     -          8 Laura Callahan Seattle
 */
 
+DECLARE @country NVARCHAR(15);
+DECLARE @employeeId INT, @lname NVARCHAR(20), @fname NVARCHAR(10), @city NVARCHAR(15);
 
+-- declare cursor
+DECLARE country_cursor CURSOR 
+FOR
+SELECT Country
+FROM Employees
+GROUP BY Country
+
+-- open cursor
+OPEN country_cursor 
+
+-- fetch data
+FETCH NEXT FROM country_cursor INTO @country
+
+WHILE @@FETCH_STATUS = 0 
+BEGIN 
+	PRINT '* ' + @country
+	--  begin inner cursor
+	DECLARE employee_cursor CURSOR 	FOR
+	SELECT EmployeeID, LastName, FirstName, City FROM Employees WHERE Country = @country
+
+	-- open cursor
+	OPEN employee_cursor
+
+	-- fetch data
+	FETCH NEXT FROM employee_cursor INTO @employeeId, @lname, @fname, @city
+
+	WHILE @@FETCH_STATUS = 0 
+	BEGIN
+		PRINT '- ' + STR(@employeeId) + ' ' + @fname + ' ' + @lname + ' ' + @city
+		FETCH NEXT FROM employee_cursor INTO @employeeId, @lname, @fname, @city
+	END
+
+	CLOSE employee_cursor
+
+	-- deallocate cursor
+	DEALLOCATE employee_cursor
+
+	-- end inner cursor
+  	FETCH NEXT FROM country_cursor INTO @country
+END 
+
+-- close cursor
+CLOSE country_cursor
+
+-- deallocate cursor
+DEALLOCATE country_cursor
+GO;
 
 
 -- Exercise 3
@@ -219,3 +322,54 @@ Total number of employees =          5
 Total number of employees =          3
 */
 
+DECLARE @bossName NVARCHAR(35), @bossId INT;
+DECLARE @employeeId INT, @lname NVARCHAR(20), @fname NVARCHAR(10);
+
+-- declare cursor
+DECLARE boss_cursor CURSOR 
+FOR
+SELECT CONCAT(FirstName, ' ', LastName) boss_name, EmployeeID
+FROM Employees
+WHERE EmployeeID IN (SELECT ReportsTo FROM Employees)
+
+-- open cursor
+OPEN boss_cursor
+
+-- fetch data
+FETCH NEXT FROM boss_cursor INTO @bossName, @bossId
+
+WHILE @@FETCH_STATUS = 0 
+BEGIN 
+	DECLARE @employeeCount INT = 0;
+	PRINT '* ' + @bossName
+	--  begin inner cursor
+	DECLARE employee_cursor CURSOR 	FOR
+	SELECT EmployeeID, LastName, FirstName FROM Employees WHERE ReportsTo = @bossId
+
+	-- open cursor
+	OPEN employee_cursor
+
+	-- fetch data
+	FETCH NEXT FROM employee_cursor INTO @employeeId, @lname, @fname
+
+	WHILE @@FETCH_STATUS = 0 
+	BEGIN
+		PRINT '- ' + STR(@employeeId) + ' ' + @fname + ' ' + @lname
+		FETCH NEXT FROM employee_cursor INTO @employeeId, @lname, @fname
+		SET @employeeCount = @employeeCount + 1; 
+	END
+	PRINT 'Total number of employees = ' + STR(@employeeCount)
+	CLOSE employee_cursor
+
+	-- deallocate cursor
+	DEALLOCATE employee_cursor
+
+	-- end inner cursor
+  	FETCH NEXT FROM boss_cursor INTO @bossName, @bossId
+END 
+
+-- close cursor
+CLOSE boss_cursor
+
+-- deallocate cursor
+DEALLOCATE boss_cursor
