@@ -92,7 +92,7 @@ GO;
 
 DECLARE @wedstrijdID INT = 18614
 EXEC details_wedstrijd @wedstrijdID
-
+GO
 
 -- We vragen ons af of er in het begin van de wedstrijd meer doelpunten worden gescoord dan in het einde van de wedstrijd
 
@@ -108,8 +108,21 @@ EXEC details_wedstrijd @wedstrijdID
 --61-75 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 --76-90 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-
-
+WITH time_slots AS (
+	SELECT 0 start_time, end_time = 15
+	UNION ALL
+	SELECT end_time + 1, end_time + 15
+	FROM time_slots
+	WHERE end_time < 90
+),
+time_slot_doelpunten AS (
+	SELECT COUNT(*) aantal_punten
+	FROM Doelpunt d
+	JOIN time_slots ts ON d.SpeelTijdstip BETWEEN ts.start_time AND ts.end_time
+	GROUP BY ts.start_time, ts.end_time
+)
+SELECT *
+FROM time_slot_doelpunten
 
 -- Maak gebruik van een geneste cursor om per seizoen de top 6 op de laatste speeldag te tonen
 --1960/1961 
