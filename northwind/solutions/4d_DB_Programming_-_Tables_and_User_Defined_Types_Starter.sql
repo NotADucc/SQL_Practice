@@ -29,8 +29,10 @@ CREATE TYPE NameType FROM NVARCHAR(50) NOT NULL;
 */ 
 
 CREATE TABLE PERSON 
-(id   IDType PRIMARY KEY, 
- name NameType);
+(
+	id IDType PRIMARY KEY, 
+	name NameType
+);
 
 /*** Distinct type: DROP ***/
 DROP Type IDType;
@@ -66,8 +68,10 @@ IF OBJECT_ID('tempdb.dbo.#OrderTotalsByYear') IS NOT NULL
 DROP TABLE dbo.#OrderTotalsByYear; 
   
 CREATE TABLE #OrderTotalsByYear 
-(OrderYear INT NOT NULL PRIMARY KEY, 
-TotalQuantity INT NOT NULL);  
+(
+	OrderYear INT NOT NULL PRIMARY KEY, 
+	TotalQuantity INT NOT NULL
+);  
 
 INSERT INTO #OrderTotalsByYear(OrderYear, TotalQuantity)   
 SELECT YEAR(o.OrderDate) AS orderyear, SUM(od.Quantity) AS qty 
@@ -75,8 +79,8 @@ FROM Orders AS o JOIN OrderDetails AS od ON o.orderid = od.orderid
 GROUP BY YEAR(orderdate);  
 
 SELECT cur.OrderYear, cur.TotalQuantity AS TotalQuantity, prv.TotalQuantity AS TotalQuantityPreviousYear 
-FROM dbo.#OrderTotalsByYear AS cur LEFT OUTER JOIN dbo.#OrderTotalsByYear AS prv 
-ON cur.OrderYear = prv.OrderYear + 1;
+FROM dbo.#OrderTotalsByYear AS cur 
+LEFT OUTER JOIN dbo.#OrderTotalsByYear AS prv ON cur.OrderYear = prv.OrderYear + 1;
 
 
 /*** Table variables > Global temporary tables ***/
@@ -87,8 +91,10 @@ ON cur.OrderYear = prv.OrderYear + 1;
 */
 
 CREATE TABLE ##ExampleGlobals 
-(id INT NOT NULL PRIMARY KEY, 
- username VARCHAR(50) NOT NULL);
+(
+	id INT NOT NULL PRIMARY KEY, 
+	username VARCHAR(50) NOT NULL
+);
 
 INSERT INTO ##ExampleGlobals(id, username) 
 VALUES(5, 'jjanssens');
@@ -100,19 +106,24 @@ DROP TABLE ##ExampleGlobals;
 
 /*** Table variables > @table ***/
 DECLARE @OrderTotalsByYear AS TABLE
-(OrderYear INT NOT NULL PRIMARY KEY, 
-TotalQuantity INT NOT NULL);
+(
+	OrderYear INT NOT NULL PRIMARY KEY, 
+	TotalQuantity INT NOT NULL
+);
 
 /*** Table types ***/
 CREATE TYPE TotalOrdersPerYear AS TABLE 
-(OrderYear INT NOT NULL PRIMARY KEY, 
-TotalQuantity INT NOT NULL);
+(
+	OrderYear INT NOT NULL PRIMARY KEY, 
+	TotalQuantity INT NOT NULL
+);
 
 DECLARE @TotOrdersPerYear AS TotalOrdersPerYear;
 
 INSERT INTO @TotOrdersPerYear
 SELECT YEAR(o.OrderDate) AS orderyear, SUM(od.Quantity) AS qty 
-FROM Orders AS o JOIN OrderDetails AS od ON o.orderid = od.orderid 
+FROM Orders AS o 
+JOIN OrderDetails AS od ON o.orderid = od.orderid 
 GROUP BY YEAR(orderdate); 
 
 SELECT * FROM @TotOrdersPerYear;
@@ -139,12 +150,16 @@ IF OBJECT_ID('tempdb.dbo.#OrderTotalsByYear') IS NOT NULL   
 DROP TABLE dbo.#OrderTotalsByYear; 
   
 CREATE TABLE #OrderTotalsByYear 
-(OrderYear INT NOT NULL PRIMARY KEY, 
-TotalQuantity INT NOT NULL);  
+(
+	OrderYear INT NOT NULL PRIMARY KEY, 
+	TotalQuantity INT NOT NULL
+);  
 
 DECLARE @OrderTotalsByYear AS TABLE
-(OrderYear INT NOT NULL PRIMARY KEY, 
-TotalQuantity INT NOT NULL);
+(
+	OrderYear INT NOT NULL PRIMARY KEY, 
+	TotalQuantity INT NOT NULL
+);
 
 SELECT * FROM #OrderTotalsByYear
 SELECT * FROM @OrderTotalsByYear
@@ -194,9 +209,10 @@ BEGIN TRANSACTION
 DECLARE @supplid INT = 1
 
 -- Show which orders should be deleted
-SELECT DISTINCT od.OrderID FROM OrderDetails od JOIN Orders o on od.OrderID = o.OrderID 
-WHERE ProductID IN 
-(SELECT ProductID FROM Products WHERE SupplierID = @supplid)
+SELECT DISTINCT od.OrderID 
+FROM OrderDetails od 
+JOIN Orders o on od.OrderID = o.OrderID 
+WHERE ProductID IN (SELECT ProductID FROM Products WHERE SupplierID = @supplid)
 
 DECLARE @nroforders INT
 DECLARE @nroforderdetails INT
@@ -206,9 +222,10 @@ PRINT 'Nr of deletedorders = ' + str(@nroforders)
 
 
 -- Check if the orders are deleted from the database
-SELECT DISTINCT od.OrderID FROM OrderDetails od JOIN Orders o on od.OrderID = o.OrderID 
-WHERE ProductID IN 
-(SELECT ProductID FROM Products WHERE SupplierID = @supplid)
+SELECT DISTINCT od.OrderID 
+FROM OrderDetails od 
+JOIN Orders o on od.OrderID = o.OrderID 
+WHERE ProductID IN (SELECT ProductID FROM Products WHERE SupplierID = @supplid)
 
 ROLLBACK
 
@@ -220,6 +237,35 @@ importance to integrity. Use a temporary table as a base for the
 deletion of the orders in the tables OrderDetails and Orders and finally delete the employee and customer
 */
 
+CREATE OR ALTER PROCEDURE delete_customer @companyName NVARCHAR(40), @employeeLastName NVARCHAR(20)
+AS 
+BEGIN
+	DECLARE @customerId NCHAR(5) = (SELECT CustomerID FROM Customers WHERE CompanyName = @companyName);
+	DECLARE @employeeId INT = (SELECT EmployeeID FROM Employees	WHERE LastName = @employeeLastName);
 
+	DECLARE @orders AS TABLE
+	(
+		orderId INT
+	);
 
+	INSERT INTO @orders
+	SELECT DISTINCT OrderID
+	FROM Orders
+	WHERE Orders.CustomerID = @customerId OR orders.EmployeeID = @employeeId
 
+	DELETE FROM OrderDetails WHERE OrderID IN (SELECT orderId FROM @orders)
+	PRINT 'Aantal ordersdetails verwijderd: ' + STR(@@rowcount)
+
+	DELETE FROM Orders WHERE OrderID IN (SELECT orderId FROM @orders)
+	PRINT 'Aantal orders verwijderd: ' + STR(@@rowcount)
+
+	DELETE FROM Customers WHERE CustomerID = @customerId
+	-- also delete employee territory
+	DELETE FROM Employees WHERE EmployeeID = @employeeId
+END
+
+BEGIN TRANSACTION
+
+EXEC delete_customer 'Santé Gourmet', 'Dodsworth'
+
+ROLLBACK
