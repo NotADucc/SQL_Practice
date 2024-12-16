@@ -21,16 +21,78 @@ CREATE OR ALTER PROCEDURE details_wedstrijd @wedstrijdID INT
 AS
 
 BEGIN 
+	IF NOT EXISTS (SELECT * FROM Wedstrijd WHERE WedstrijdID = @wedstrijdID)
+	BEGIN
+		RAISERROR('Wedstrijd id bestaat niet', 18, 1)
+		RETURN
+	END
 
+	DECLARE @speelDatum DATE, @ploegThuis VARCHAR(255), @ploegUit VARCHAR(255), @tijdstip CHAR(8), @eindScoreThuis INT, @eindScoreUit INT;
+	DECLARE @scoreMinuten INT, @standThuis INT, @standUit INT, @wieScoorde CHAR(5);
 
+	--declare cursor
+	DECLARE wedstrijd_cursor CURSOR 
+	FOR
+	SELECT w.Speeldatum, p1.ploegnaam, p2.ploegnaam, w.SpeelTijdstip, w.EindstandThuis, w.EindstandUit
+	FROM Wedstrijd w
+	JOIN Ploeg p1 ON w.StamnummerThuis = p1.stamnummer
+	JOIN Ploeg p2 ON w.StamnummerUit = p2.stamnummer
+	WHERE w.WedstrijdId = 18614
 
+	-- open cursor
+	OPEN wedstrijd_cursor
+
+	-- fetch data
+	FETCH NEXT FROM wedstrijd_cursor INTO @speelDatum, @ploegThuis, @ploegUit, @tijdstip, @eindScoreThuis, @eindScoreUit
+
+	WHILE @@FETCH_STATUS = 0 
+	BEGIN 
+		PRINT CONCAT(FORMAT (@speelDatum, 'dddd, MMMM, yyyy'), ' ', @tijdstip)
+		PRINT @ploegThuis + ' vs ' + @ploegUit
+		PRINT CONCAT('Eindstand = ', @eindScoreThuis, ' - ', @eindScoreUit)
+		--  begin inner cursor
+		DECLARE punten_cursor CURSOR FOR
+		SELECT ScoreMinuten, DoelpuntenThuis, DoelpuntenUit, WieScoorde FROM Doelpunt WHERE WedstrijdID = @wedstrijdID
+
+		-- open cursor
+		OPEN punten_cursor
+
+		-- fetch data
+		FETCH NEXT FROM punten_cursor INTO @scoreMinuten, @standThuis, @standUit, @wieScoorde
+		--1:0     9'
+		--        24'    1:1
+		--2:1     63'
+		--        65'    2:2
+		--3:2     74'
+		WHILE @@FETCH_STATUS = 0 
+		BEGIN
+			PRINT CASE WHEN @wieScoorde = 'T' 
+				THEN CONCAT(@standThuis, ':', @standUit) + '	' + CONCAT(@scoreMinuten, '''')
+				ELSE '	' + CONCAT(@scoreMinuten, '''') + '		' + CONCAT(@standThuis, ':', @standUit) END
+			FETCH NEXT FROM punten_cursor INTO @scoreMinuten, @standThuis, @standUit, @wieScoorde
+		END
+
+		CLOSE punten_cursor
+
+		-- deallocate cursor
+		DEALLOCATE punten_cursor
+
+		-- end inner cursor
+  		FETCH NEXT FROM wedstrijd_cursor INTO @speelDatum, @ploegThuis, @ploegUit, @tijdstip, @eindScoreThuis, @eindScoreUit
+	END 
+
+	-- close cursor
+	CLOSE wedstrijd_cursor
+
+	-- deallocate cursor
+	DEALLOCATE wedstrijd_cursor
 END
-
+GO;
 -- Testcode
 
 DECLARE @wedstrijdID INT = 18614
 EXEC details_wedstrijd @wedstrijdID
-
+GO
 
 -- We vragen ons af of er in het begin van de wedstrijd meer doelpunten worden gescoord dan in het einde van de wedstrijd
 
@@ -46,8 +108,21 @@ EXEC details_wedstrijd @wedstrijdID
 --61-75 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 --76-90 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-
-
+WITH time_slots AS (
+	SELECT 0 start_time, end_time = 15
+	UNION ALL
+	SELECT end_time + 1, end_time + 15
+	FROM time_slots
+	WHERE end_time < 90
+),
+time_slot_doelpunten AS (
+	SELECT COUNT(*) aantal_punten
+	FROM Doelpunt d
+	JOIN time_slots ts ON d.SpeelTijdstip BETWEEN ts.start_time AND ts.end_time
+	GROUP BY ts.start_time, ts.end_time
+)
+SELECT *
+FROM time_slot_doelpunten
 
 -- Maak gebruik van een geneste cursor om per seizoen de top 6 op de laatste speeldag te tonen
 --1960/1961 

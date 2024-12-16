@@ -463,9 +463,6 @@ EXEC ContactCustomers 'Refrescos Americanas LTDA', @numberOfCustomersOUT OUTPUT
 PRINT(@numberOfCustomersOUT)
 
 
-
-
-
 -- Exercise 2
 -- We'd like to have 1 stored procedure InsertProduct to insert new OrderDetails, however make sure that:
 
@@ -484,32 +481,87 @@ PRINT(@numberOfCustomersOUT)
 -- 10249	14			18,60		9			0
 -- 10249	51			42,40		40			0
 
+CREATE OR ALTER PROCEDURE InsertProduct 
+	@orderid INT, 
+	@productId INT,
+	@price MONEY,
+	@quantity SMALLINT,
+	@discount REAL
+AS
+BEGIN
+	IF NOT EXISTS (SELECT * FROM Orders WHERE OrderID = @orderid)
+	BEGIN
+		RAISERROR('orderid doesn''t exist', 18, 1)
+		RETURN
+	END
+
+	IF NOT EXISTS (SELECT * FROM Products WHERE ProductID = @productId)
+	BEGIN
+		RAISERROR('productid doesn''t exist', 18, 1)
+		RETURN
+	END
 
 
+	DECLARE @db_unit_price MONEY = (SELECT UnitPrice FROM Products WHERE ProductID = @productId);
+	
+	IF @price IS NULL 
+	BEGIN
+		SET @price = @db_unit_price;
+	END
 
+	IF @price NOT BETWEEN @db_unit_price * 0.85 AND @db_unit_price * 1.15
+	BEGIN
+		RAISERROR('difference unit price is larger than 15% than db unit price', 18, 1)
+		RETURN
+	END
+
+	IF @discount IS NULL
+	BEGIN
+		SET @discount = 0.0;
+	END
+
+	IF @discount NOT BETWEEN 0.0 AND 0.25
+	BEGIN
+		RAISERROR('discount not between 0 and 0.25', 18, 1)
+		RETURN
+	END
+
+	DECLARE @max_ordered INT = (SELECT MAX(od.Quantity) FROM OrderDetails od WHERE od.ProductID = @productId);
+
+	IF @quantity > @max_ordered * 2
+	BEGIN
+		RAISERROR('ordered too much, cant order more than 2x the current max sold quantity',18,1)
+		RETURN
+	END
+
+	INSERT INTO OrderDetails
+	VALUES (@orderid, @productId, @price, @quantity, @discount)
+END
 
 -- TestCode
 
 BEGIN TRANSACTION
 
-
+EXEC InsertProduct 10249, 72, 35.00, 10, 0.15
 
 SELECT * FROM OrderDetails WHERE OrderID = 10249
 
 ROLLBACK;
-
+GO;
 
 -- Exercise 3
 -- Give per title the employees that earn within x % of the highest paid employee (x is a variable)
 -- Create an inline table valued UDF, with x as a parameter, that returns the salary range per title
 -- Use that UDF to get the result
-
-
 -- Solution
-
+CREATE OR ALTER FUNCTION maxi_per_title(@x INT) RETURNS TABLE
+RETURN
+SELECT Title, MAX(Salary) * @x / 100 AS salary_limit
+FROM Employees
+GROUP BY Title
+GO;
 
 -- Testcode
-
-
-
-
+SELECT *
+FROM Employees e
+JOIN maxi_per_title(80) mpt ON e.Title = mpt.Title AND e.Salary > mpt.salary_limit
